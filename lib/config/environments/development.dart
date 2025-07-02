@@ -1,0 +1,31 @@
+import '../../shared/services/logger/log_level.dart';
+import '../app_config.dart';
+
+class DevelopmentEnvironment extends AppEnvironment {
+  @override
+  String get appName => 'MyMessenger Dev';
+
+  @override
+  String get baseUrl => 'https://dev-api.mymessenger.com';
+
+  @override
+  String get socketUrl => 'wss://dev-socket.mymessenger.com';
+
+  @override
+  String get apiKey => 'dev_api_key_here';
+
+  @override
+  bool get enableLogging => true;
+
+  @override
+  LogLevel get logLevel => LogLevel.debug;
+
+  @override
+  bool get enableCrashlytics => false;
+
+  @override
+  bool get enableAnalytics => false;
+
+  @override
+  String get bundleId => 'com.mymessenger.dev';
+}
