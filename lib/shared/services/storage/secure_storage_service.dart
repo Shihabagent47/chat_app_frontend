@@ -1,35 +1,64 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class SecureStorageService {
-  final FlutterSecureStorage _secureStorage;
+  static const _storage = FlutterSecureStorage(
+    aOptions: AndroidOptions(encryptedSharedPreferences: true),
+    iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
+  );
 
-  SecureStorageService() : _secureStorage = const FlutterSecureStorage();
+  static const String _accessTokenKey = 'access_token';
+  static const String _refreshTokenKey = 'refresh_token';
+  static const String _expiresAtKey = 'expires_at';
+  static const String _userDataKey = 'user_data';
 
-  static const _keyAccessToken = 'ACCESS_TOKEN';
-  static const _keyRefreshToken = 'REFRESH_TOKEN';
-
-  Future<void> saveAccessToken(String token) async {
-    await _secureStorage.write(key: _keyAccessToken, value: token);
+  Future<void> saveTokens({
+    required String accessToken,
+    required String refreshToken,
+    required DateTime expiresAt,
+  }) async {
+    await Future.wait([
+      _storage.write(key: _accessTokenKey, value: accessToken),
+      _storage.write(key: _refreshTokenKey, value: refreshToken),
+      _storage.write(key: _expiresAtKey, value: expiresAt.toIso8601String()),
+    ]);
   }
 
-  Future<String?> readAccessToken() async {
-    return await _secureStorage.read(key: _keyAccessToken);
+  Future<String?> getAccessToken() async {
+    return await _storage.read(key: _accessTokenKey);
   }
 
-  Future<void> deleteAccessToken() async {
-    await _secureStorage.delete(key: _keyAccessToken);
+  Future<String?> getRefreshToken() async {
+    return await _storage.read(key: _refreshTokenKey);
   }
 
-  // Similar for refresh token
-  Future<void> saveRefreshToken(String token) async {
-    await _secureStorage.write(key: _keyRefreshToken, value: token);
+  Future<DateTime?> getExpiresAt() async {
+    final expiresAtString = await _storage.read(key: _expiresAtKey);
+    if (expiresAtString != null) {
+      return DateTime.parse(expiresAtString);
+    }
+    return null;
   }
 
-  Future<String?> readRefreshToken() async {
-    return await _secureStorage.read(key: _keyRefreshToken);
+  Future<void> saveUserData(String userData) async {
+    await _storage.write(key: _userDataKey, value: userData);
   }
 
-  Future<void> deleteAll() async {
-    await _secureStorage.deleteAll();
+  Future<String?> getUserData() async {
+    return await _storage.read(key: _userDataKey);
+  }
+
+  Future<void> clearAll() async {
+    await _storage.deleteAll();
+  }
+
+  Future<bool> hasValidToken() async {
+    final token = await getAccessToken();
+    final expiresAt = await getExpiresAt();
+
+    if (token == null || expiresAt == null) {
+      return false;
+    }
+
+    return DateTime.now().isBefore(expiresAt);
   }
 }

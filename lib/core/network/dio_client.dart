@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 
-import '../../../config/app_config.dart';
-import '../storage/secure_storage_service.dart';
+import '../../config/app_config.dart';
+import '../../shared/services/storage/secure_storage_service.dart';
 import 'api_interceptors.dart';
 import 'loggin_interceptor.dart';
 
