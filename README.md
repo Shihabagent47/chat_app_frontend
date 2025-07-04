@@ -36,6 +36,33 @@ A modern, cross-platform chat application frontend built with Flutter.
    flutter run
    ```
 
+### Running with Flavors (Environments)
+
+This project supports multiple environments (flavors): **development**, **staging**, and **production**. Each environment has its own main entrypoint.
+
+To run the app in a specific environment, use the `--target` option with `flutter run`:
+
+- **Development**
+  ```sh
+  flutter run --flavor dev -t lib/main_development.dart
+  ```
+- **Staging**
+  ```sh
+  flutter run --flavor stage -t lib/main_staging.dart
+  ```
+- **Production**
+  ```sh
+  flutter run --flavor prod -t lib/main_production.dart
+  ```
+
+You can use these commands for all supported platforms (Android, iOS, web, desktop). For example, to run the production flavor on web:
+
+```sh
+flutter run -d chrome --target=lib/main_production.dart
+```
+
+> **Note:** Make sure to use the correct device flag (`-d`) for your target platform.
+
 ## Project Structure
 
 - `lib/` - Main Dart source code
