@@ -39,11 +39,6 @@ class AppRouter {
 
     List<RouteBase> routes = [
       // Home Route
-      GoRoute(
-        path: RouteNames.home,
-        name: 'home',
-        builder: (context, state) => const HomePage(),
-      ),
 
       // Auth Routes
       GoRoute(
@@ -82,12 +77,6 @@ class AppRouter {
   }
 
   static List<RouteBase> _getStagingRoutes() {
-    return [
-      GoRoute(
-        path: '/staging-info',
-        name: 'stagingInfo',
-        builder: (context, state) => const StagingInfoPage(),
-      ),
-    ];
+    return [];
   }
 }

@@ -2,13 +2,10 @@ import 'package:chat_app_user/config/app_config.dart';
 import 'package:chat_app_user/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../features/theme/presentation/theme_bloc.dart';
 import '../routing/app_router.dart';
 import '../../injection_container.dart' as di;
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../config/app_config.dart';
 import '../../config/flavor_config.dart';
-import '../routing/app_router.dart';
 
 class MyApp extends StatelessWidget {
   @override
@@ -18,7 +15,6 @@ class MyApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: (_) => di.sl<AuthBloc>()),
-        BlocProvider(create: (_) => di.sl<UserBloc>()),
         BlocProvider(create: (_) => di.sl<ThemeBloc>()),
         // Add other BLoCs here
       ],

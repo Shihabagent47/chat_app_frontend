@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:chat_app_user/config/app_config.dart';
 import 'package:chat_app_user/config/flavor_config.dart';
 import 'package:flutter/material.dart';
@@ -15,7 +17,7 @@ class AppRunner {
     FlavorConfig.appFlavor = flavor;
 
     // Initialize dependency injection
-    await di.init();
+    //await di.init();
 
     // Setup system UI
     await _setupSystemUI();
@@ -25,7 +27,7 @@ class AppRunner {
 
     // Setup bloc observer for debugging
     if (environment.enableLogging) {
-      Bloc.observer = AppBlocObserver();
+      //    Bloc.observer = AppBlocObserver();
     }
 
     // Run the app
