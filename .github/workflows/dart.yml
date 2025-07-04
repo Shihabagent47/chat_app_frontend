@@ -18,20 +18,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Setup Flutter SDK
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.22.1' # Optional: set your desired version
-          channel: 'stable'         # Optional: stable, beta, dev, etc.
+          flutter-version: '3.22.1'
+          channel: 'stable'
 
-      # Install dependencies
       - name: Install dependencies
         run: flutter pub get
 
-      # Analyze source code
       - name: Analyze project source
         run: flutter analyze
 
-      # Run tests
       - name: Run tests
         run: flutter test
