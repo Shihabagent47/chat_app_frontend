@@ -28,4 +28,15 @@ class ProductionEnvironment extends AppEnvironment {
 
   @override
   String get bundleId => 'com.mymessenger';
+
+  @override
+  int get connectTimeout => 30000; // 30 seconds
+  @override
+  int get receiveTimeout => 30000; // 30 seconds
+  @override
+  Map<String, String> get headers => {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    'Api-Key': apiKey,
+  };
 }

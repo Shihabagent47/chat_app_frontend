@@ -38,8 +38,6 @@ class AppRouter {
     final environment = AppConfig.environment;
 
     List<RouteBase> routes = [
-      // Home Route
-
       // Auth Routes
       GoRoute(
         path: RouteNames.login,

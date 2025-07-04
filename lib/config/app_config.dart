@@ -15,9 +15,20 @@ abstract class AppEnvironment {
   String get baseUrl;
   String get socketUrl;
   String get apiKey;
+  String get bundleId;
+
   bool get enableLogging;
   LogLevel get logLevel;
+
   bool get enableCrashlytics;
   bool get enableAnalytics;
-  String get bundleId;
+
+  int get connectTimeout; // in milliseconds
+  int get receiveTimeout; // in milliseconds
+
+  Map<String, String> get headers => {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    'Api-Key': apiKey,
+  };
 }

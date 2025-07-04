@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:ui';
 
 import 'package:chat_app_user/config/app_config.dart';
@@ -17,7 +18,7 @@ class AppRunner {
     FlavorConfig.appFlavor = flavor;
 
     // Initialize dependency injection
-    //await di.init();
+    await di.init(environment);
 
     // Setup system UI
     await _setupSystemUI();

@@ -19,8 +19,7 @@ class AuthGuard {
 
     // Get auth state from BLoC
     final authBloc = context.read<AuthBloc>();
-    final isAuthenticated = authBloc.state is AuthState;
-
+    final isAuthenticated = authBloc.state.status == AuthStatus.authenticated;
     final protectedRoutes = [
       RouteNames.dashboard,
       RouteNames.userProfile,
