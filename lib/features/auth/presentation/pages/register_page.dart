@@ -1,3 +1,6 @@
+import 'package:chat_app_user/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:chat_app_user/features/auth/presentation/bloc/auth_event.dart';
+import 'package:chat_app_user/features/auth/presentation/bloc/auth_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -11,6 +14,7 @@ class _RegisterPageState extends State<RegisterPage> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -22,6 +26,10 @@ class _RegisterPageState extends State<RegisterPage> {
 
   void _register() {
     if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+      });
+
       context.read<AuthBloc>().add(
         AuthRegisterRequested(
           name: _nameController.text.trim(),
@@ -38,11 +46,16 @@ class _RegisterPageState extends State<RegisterPage> {
       appBar: AppBar(title: Text('Register')),
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
-          if (state is AuthError) {
+          setState(() {
+            _isLoading = false;
+          });
+
+          if (state.status == AuthStatus.unauthenticated &&
+              state.message != null) {
             ScaffoldMessenger.of(
               context,
-            ).showSnackBar(SnackBar(content: Text(state.message)));
-          } else if (state is AuthAuthenticated) {
+            ).showSnackBar(SnackBar(content: Text(state.message!)));
+          } else if (state.status == AuthStatus.authenticated) {
             Navigator.pushReplacementNamed(context, '/home');
           }
         },
@@ -63,6 +76,9 @@ class _RegisterPageState extends State<RegisterPage> {
                     if (value == null || value.isEmpty) {
                       return 'Please enter your name';
                     }
+                    if (value.length < 2) {
+                      return 'Name must be at least 2 characters';
+                    }
                     return null;
                   },
                 ),
@@ -77,6 +93,9 @@ class _RegisterPageState extends State<RegisterPage> {
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter your email';
+                    }
+                    if (!value.contains('@')) {
+                      return 'Please enter a valid email';
                     }
                     return null;
                   },
@@ -100,22 +119,25 @@ class _RegisterPageState extends State<RegisterPage> {
                   },
                 ),
                 SizedBox(height: 24),
-                BlocBuilder<AuthBloc, AuthState>(
-                  builder: (context, state) {
-                    return ElevatedButton(
-                      onPressed: state is AuthLoading ? null : _register,
-                      child:
-                          state is AuthLoading
-                              ? CircularProgressIndicator()
-                              : Text('Register'),
-                    );
-                  },
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: _isLoading ? null : _register,
+                    child:
+                        _isLoading
+                            ? CircularProgressIndicator(color: Colors.white)
+                            : Text('Register'),
+                  ),
                 ),
                 SizedBox(height: 16),
                 TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
+                  onPressed:
+                      _isLoading
+                          ? null
+                          : () {
+                            Navigator.pop(context);
+                          },
                   child: Text('Already have an account? Login'),
                 ),
               ],

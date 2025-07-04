@@ -1,19 +1,21 @@
+import 'package:chat_app_user/config/app_config.dart';
+import 'package:chat_app_user/config/flavor_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../config/app_config.dart';
 import '../../injection_container.dart' as di;
 import 'my_app.dart';
 
 class AppRunner {
-  static Future<void> run(AppConfig config) async {
+  static Future<void> run(AppEnvironment environment, Flavor flavor) async {
     WidgetsFlutterBinding.ensureInitialized();
 
-    // Initialize app configuration
-    AppConfig.initialize(config);
+    // Set environment and flavor
+    AppConfig.setEnvironment(environment);
+    FlavorConfig.appFlavor = flavor;
 
     // Initialize dependency injection
-    await di.init(config);
+    await di.init();
 
     // Setup system UI
     await _setupSystemUI();
@@ -22,7 +24,7 @@ class AppRunner {
     _setupErrorHandling();
 
     // Setup bloc observer for debugging
-    if (config.enableLogging) {
+    if (environment.enableLogging) {
       Bloc.observer = AppBlocObserver();
     }
 
@@ -45,44 +47,35 @@ class AppRunner {
   }
 
   static void _setupErrorHandling() {
+    final environment = AppConfig.environment;
+
     FlutterError.onError = (FlutterErrorDetails details) {
       FlutterError.presentError(details);
-      if (AppConfig.instance.enableCrashlytics) {
+
+      if (environment.enableLogging) {
+        print('🚨 Flutter Error: ${details.exception}');
+        print('Stack trace: ${details.stack}');
+      }
+
+      if (environment.enableCrashlytics) {
         // Send to crashlytics
         // FirebaseCrashlytics.instance.recordFlutterError(details);
       }
     };
-  }
-}
 
-// BLoC Observer for debugging
-class AppBlocObserver extends BlocObserver {
-  @override
-  void onCreate(BlocBase bloc) {
-    super.onCreate(bloc);
-    if (AppConfig.instance.enableLogging) {
-      print('🔥 BLoC Created: ${bloc.runtimeType}');
-    }
-  }
+    // Handle errors outside of Flutter
+    PlatformDispatcher.instance.onError = (error, stack) {
+      if (environment.enableLogging) {
+        print('🚨 Platform Error: $error');
+        print('Stack trace: $stack');
+      }
 
-  @override
-  void onTransition(BlocBase bloc, Transition transition) {
-    super.onTransition(bloc, transition);
-    if (AppConfig.instance.enableLogging) {
-      print('🔄 BLoC Transition: ${bloc.runtimeType}');
-      print('Current State: ${transition.currentState}');
-      print('Event: ${transition.event}');
-      print('Next State: ${transition.nextState}');
-    }
-  }
+      if (environment.enableCrashlytics) {
+        // Send to crashlytics
+        // FirebaseCrashlytics.instance.recordError(error, stack);
+      }
 
-  @override
-  void onError(BlocBase bloc, Object error, StackTrace stackTrace) {
-    super.onError(bloc, error, stackTrace);
-    print('❌ BLoC Error: ${bloc.runtimeType}');
-    print('Error: $error');
-    if (AppConfig.instance.enableCrashlytics) {
-      // Send to crashlytics
-    }
+      return true;
+    };
   }
 }

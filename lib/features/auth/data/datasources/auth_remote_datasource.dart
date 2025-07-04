@@ -1,9 +1,9 @@
+import 'package:chat_app_user/config/app_config.dart';
+import 'package:chat_app_user/core/network/dio_client.dart';
+import 'package:chat_app_user/shared/services/storage/secure_storage_service.dart';
 import 'package:dio/dio.dart';
 import 'dart:convert';
 import '../../../../core/error/exceptions.dart';
-import '../../../../core/network/api_endpoints.dart';
-import '../../../../core/network/network_client.dart';
-import '../../../../core/services/secure_storage_service.dart';
 import '../models/auth_response_model.dart';
 import '../models/user_model.dart';
 
@@ -27,7 +27,7 @@ abstract class AuthRemoteDataSource {
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
-  final NetworkClient networkClient;
+  final DioClient networkClient;
   final SecureStorageService secureStorage;
 
   AuthRemoteDataSourceImpl({
@@ -41,8 +41,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String password,
   }) async {
     try {
-      final response = await networkClient.dio.post(
-        '${ApiEndpoints.baseUrl}${ApiEndpoints.login}',
+      final response = await networkClient.client.post(
+        '${AppConfig.environment.baseUrl}login',
         data: {'email': email, 'password': password},
       );
 
@@ -77,8 +77,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String password,
   }) async {
     try {
-      final response = await networkClient.dio.post(
-        '${ApiEndpoints.baseUrl}${ApiEndpoints.register}',
+      final response = await networkClient.client.post(
+        '${AppConfig.environment.baseUrl}register',
         data: {'name': name, 'email': email, 'password': password},
       );
 
@@ -118,8 +118,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         throw ServerException('No refresh token found');
       }
 
-      final response = await networkClient.dio.post(
-        '${ApiEndpoints.baseUrl}/auth/refresh',
+      final response = await networkClient.client.post(
+        '${AppConfig.environment.baseUrl}/auth/refresh',
         data: {'refresh_token': refreshToken},
       );
 
@@ -151,8 +151,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       final accessToken = await secureStorage.getAccessToken();
 
       if (accessToken != null) {
-        await networkClient.dio.post(
-          '${ApiEndpoints.baseUrl}/auth/logout',
+        await networkClient.client.post(
+          '${AppConfig.environment.baseUrl}/auth/logout',
           options: Options(headers: {'Authorization': 'Bearer $accessToken'}),
         );
       }
@@ -182,8 +182,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         throw ServerException('No access token found');
       }
 
-      final response = await networkClient.dio.get(
-        '${ApiEndpoints.baseUrl}/auth/me',
+      final response = await networkClient.client.get(
+        '${AppConfig.environment.baseUrl}/auth/me',
         options: Options(headers: {'Authorization': 'Bearer $accessToken'}),
       );
 

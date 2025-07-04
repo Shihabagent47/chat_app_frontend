@@ -1,7 +1,7 @@
 import 'package:chat_app_user/config/environments/production.dart';
+import 'package:chat_app_user/core/app/my_app.dart';
 import 'config/app_config.dart';
 import 'config/flavor_config.dart';
-import 'my_app.dart';
 import 'shared/services/logger/app_logger.dart';
 import 'package:flutter/material.dart';
 
@@ -17,5 +17,5 @@ void main() async {
   // Initialize logger
   AppLogger.initialize();
 
-  runApp(const MyApp());
+  runApp(MyApp());
 }

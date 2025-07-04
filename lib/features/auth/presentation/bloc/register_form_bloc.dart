@@ -77,14 +77,22 @@ class RegisterFormState extends Equatable {
   }
 
   @override
-  List<Object> get props => [email, password, confirmPassword, isLoading, isValid, errorMessage];
+  List<Object> get props => [
+    email,
+    password,
+    confirmPassword,
+    isLoading,
+    isValid,
+    errorMessage,
+  ];
 }
 
 // Register Form Bloc
 class RegisterFormBloc extends Bloc<RegisterFormEvent, RegisterFormState> {
   final AuthBloc authBloc;
 
-  RegisterFormBloc({required this.authBloc}) : super(const RegisterFormState()) {
+  RegisterFormBloc({required this.authBloc})
+    : super(const RegisterFormState()) {
     on<RegisterFormEmailChanged>(_onEmailChanged);
     on<RegisterFormPasswordChanged>(_onPasswordChanged);
     on<RegisterFormConfirmPasswordChanged>(_onConfirmPasswordChanged);
@@ -115,11 +123,18 @@ class RegisterFormBloc extends Bloc<RegisterFormEvent, RegisterFormState> {
     emit(newState.copyWith(isValid: _isFormValid(newState)));
   }
 
-  void _onSubmitted(RegisterFormSubmitted event, Emitter<RegisterFormState> emit) {
+  void _onSubmitted(
+    RegisterFormSubmitted event,
+    Emitter<RegisterFormState> emit,
+  ) {
     if (state.isValid) {
       emit(state.copyWith(isLoading: true, errorMessage: ''));
       authBloc.add(
-        AuthRegisterRequested(name: '', email: state.email, password: state.password),
+        AuthRegisterRequested(
+          name: '',
+          email: state.email,
+          password: state.password,
+        ),
       );
     } else {
       emit(state.copyWith(errorMessage: 'Please check your input.'));

@@ -1,14 +1,19 @@
 import 'package:chat_app_user/config/app_config.dart';
+import 'package:chat_app_user/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../config/app_config.dart';
 import '../routing/app_router.dart';
 import '../../injection_container.dart' as di;
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../config/app_config.dart';
+import '../../config/flavor_config.dart';
+import '../routing/app_router.dart';
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final config = AppConfig.instance;
+    final environment = AppConfig.environment;
 
     return MultiBlocProvider(
       providers: [
@@ -20,12 +25,12 @@ class MyApp extends StatelessWidget {
       child: BlocBuilder<ThemeBloc, ThemeState>(
         builder: (context, themeState) {
           return MaterialApp.router(
-            title: config.appName,
-            debugShowCheckedModeBanner: config.environment.isDevelopment,
+            title: environment.appName,
+            debugShowCheckedModeBanner: environment.enableLogging,
             theme: _getTheme(themeState),
-            routerConfig: AppRouter.getRouter(config),
+            routerConfig: AppRouter.router,
             builder: (context, child) {
-              return _AppWrapper(config: config, child: child!);
+              return _AppWrapper(child: child!);
             },
           );
         },
@@ -34,30 +39,54 @@ class MyApp extends StatelessWidget {
   }
 
   ThemeData _getTheme(ThemeState state) {
-    // Return theme based on state and environment
+    // Customize theme based on flavor
+    final primaryColor =
+        FlavorConfig.isDevelopment
+            ? Colors.red
+            : FlavorConfig.isStaging
+            ? Colors.orange
+            : Colors.blue;
+
     return ThemeData(
-      primarySwatch: Colors.blue,
+      primarySwatch: primaryColor,
       visualDensity: VisualDensity.adaptivePlatformDensity,
+      appBarTheme: AppBarTheme(
+        backgroundColor: primaryColor,
+        foregroundColor: Colors.white,
+      ),
     );
   }
 }
 
 class _AppWrapper extends StatelessWidget {
-  final AppConfig config;
   final Widget child;
 
-  const _AppWrapper({required this.config, required this.child});
+  const _AppWrapper({required this.child});
 
   @override
   Widget build(BuildContext context) {
     Widget app = child;
 
     // Add environment banner for non-production
-    if (!config.environment.isProduction) {
+    if (!FlavorConfig.isProduction) {
+      final bannerMessage =
+          FlavorConfig.isDevelopment
+              ? 'DEV'
+              : FlavorConfig.isStaging
+              ? 'STAGING'
+              : 'UNKNOWN';
+
+      final bannerColor =
+          FlavorConfig.isDevelopment
+              ? Colors.red
+              : FlavorConfig.isStaging
+              ? Colors.orange
+              : Colors.grey;
+
       app = Banner(
-        message: config.environment.name.toUpperCase(),
+        message: bannerMessage,
         location: BannerLocation.topStart,
-        color: config.environment.isDevelopment ? Colors.red : Colors.orange,
+        color: bannerColor,
         child: app,
       );
     }

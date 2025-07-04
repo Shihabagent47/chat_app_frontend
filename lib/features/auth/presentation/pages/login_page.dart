@@ -13,6 +13,7 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -23,6 +24,10 @@ class _LoginPageState extends State<LoginPage> {
 
   void _login() {
     if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+      });
+
       context.read<AuthBloc>().add(
         AuthLoginRequested(
           email: _emailController.text.trim(),
@@ -38,11 +43,16 @@ class _LoginPageState extends State<LoginPage> {
       appBar: AppBar(title: Text('Login')),
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
-          if (state is AuthError) {
+          setState(() {
+            _isLoading = false;
+          });
+
+          if (state.status == AuthStatus.unauthenticated &&
+              state.message != null) {
             ScaffoldMessenger.of(
               context,
-            ).showSnackBar(SnackBar(content: Text(state.message)));
-          } else if (state is AuthAuthenticated) {
+            ).showSnackBar(SnackBar(content: Text(state.message!)));
+          } else if (state.status == AuthStatus.authenticated) {
             Navigator.pushReplacementNamed(context, '/home');
           }
         },
@@ -64,6 +74,9 @@ class _LoginPageState extends State<LoginPage> {
                     if (value == null || value.isEmpty) {
                       return 'Please enter your email';
                     }
+                    if (!value.contains('@')) {
+                      return 'Please enter a valid email';
+                    }
                     return null;
                   },
                 ),
@@ -83,22 +96,25 @@ class _LoginPageState extends State<LoginPage> {
                   },
                 ),
                 SizedBox(height: 24),
-                BlocBuilder<AuthBloc, AuthState>(
-                  builder: (context, state) {
-                    return ElevatedButton(
-                      onPressed: state is AuthLoadind ? null : _login,
-                      child:
-                          state is AuthLoading
-                              ? CircularProgressIndicator()
-                              : Text('Login'),
-                    );
-                  },
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: _isLoading ? null : _login,
+                    child:
+                        _isLoading
+                            ? CircularProgressIndicator(color: Colors.white)
+                            : Text('Login'),
+                  ),
                 ),
                 SizedBox(height: 16),
                 TextButton(
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/register');
-                  },
+                  onPressed:
+                      _isLoading
+                          ? null
+                          : () {
+                            Navigator.pushNamed(context, '/register');
+                          },
                   child: Text('Don\'t have an account? Register'),
                 ),
               ],

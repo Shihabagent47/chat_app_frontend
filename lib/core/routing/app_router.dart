@@ -1,27 +1,43 @@
+import 'package:chat_app_user/config/app_config.dart';
+import 'package:chat_app_user/config/flavor_config.dart';
+import 'package:chat_app_user/features/auth/presentation/pages/login_page.dart';
+import 'package:chat_app_user/features/auth/presentation/pages/register_page.dart';
+import 'package:chat_app_user/shared/page/debug_page.dart';
+import 'package:chat_app_user/shared/page/error_page.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../features/auth/presentation/pages/login_page.dart';
-import '../features/auth/presentation/pages/register_page.dart';
-import '../features/home/presentation/pages/home_page.dart';
-import '../features/dashboard/presentation/pages/dashboard_page.dart';
-import '../features/user/presentation/pages/user_profile_page.dart';
-import '../features/user/presentation/pages/user_list_page.dart';
-import '../features/user/presentation/pages/user_detail_page.dart';
 import 'route_names.dart';
 import 'route_guards.dart';
 
 class AppRouter {
-  static GoRouter router = GoRouter(
-    initialLocation: RouteNames.home,
-    debugLogDiagnostics: true,
-    redirect: AuthGuard.checkAuth,
-    refreshListenable: GoRouterRefreshStream([
-      // Listen to auth changes to trigger route refresh
-      // You can add your auth stream here
-    ]),
-    errorBuilder: (context, state) => ErrorPage(error: state.error),
-    routes: [
+  static GoRouter? _router;
+
+  static GoRouter get router {
+    _router ??= _createRouter();
+    return _router!;
+  }
+
+  static GoRouter _createRouter() {
+    final environment = AppConfig.environment;
+
+    return GoRouter(
+      initialLocation: RouteNames.home,
+      debugLogDiagnostics: environment.enableLogging,
+      redirect: AuthGuard.checkAuth,
+      errorBuilder:
+          (context, state) => ErrorPage(
+            error: state.error,
+            showDebugInfo: environment.enableLogging,
+          ),
+      routes: _buildRoutes(),
+    );
+  }
+
+  static List<RouteBase> _buildRoutes() {
+    final environment = AppConfig.environment;
+
+    List<RouteBase> routes = [
       // Home Route
       GoRoute(
         path: RouteNames.home,
@@ -33,81 +49,45 @@ class AppRouter {
       GoRoute(
         path: RouteNames.login,
         name: 'login',
-        builder: (context, state) => const LoginPage(),
+        builder: (context, state) => LoginPage(),
       ),
       GoRoute(
         path: RouteNames.register,
         name: 'register',
-        builder: (context, state) => const RegisterPage(),
+        builder: (context, state) => RegisterPage(),
       ),
+    ];
 
-      // Dashboard Route
-      GoRoute(
-        path: RouteNames.dashboard,
-        name: 'dashboard',
-        builder: (context, state) => const DashboardPage(),
-      ),
-
-      // User Routes - Nested routing
-      GoRoute(
-        path: '/user',
-        name: 'user',
-        builder: (context, state) => const UserMainPage(),
-        routes: [
-          GoRoute(
-            path: '/profile',
-            name: 'userProfile',
-            builder: (context, state) => const UserProfilePage(),
-          ),
-          GoRoute(
-            path: '/list',
-            name: 'userList',
-            builder: (context, state) => const UserListPage(),
-          ),
-          GoRoute(
-            path: '/:id',
-            name: 'userDetail',
-            builder: (context, state) {
-              final userId = state.pathParameters['id']!;
-              return UserDetailPage(userId: userId);
-            },
-          ),
-        ],
-      ),
-
-      // Settings Route
-      GoRoute(
-        path: RouteNames.settings,
-        name: 'settings',
-        builder: (context, state) => const SettingsPage(),
-      ),
-    ],
-  );
-}
-
-// Navigation Helper Class
-class NavigationHelper {
-  static void goToLogin(BuildContext context) {
-    context.goNamed('login');
-  }
-
-  static void goToDashboard(BuildContext context) {
-    context.goNamed('dashboard');
-  }
-
-  static void goToUserProfile(BuildContext context) {
-    context.goNamed('userProfile');
-  }
-
-  static void goToUserDetail(BuildContext context, String userId) {
-    context.goNamed('userDetail', pathParameters: {'id': userId});
-  }
-
-  static void goBack(BuildContext context) {
-    if (context.canPop()) {
-      context.pop();
-    } else {
-      context.goNamed('home');
+    // Add development-only routes
+    if (FlavorConfig.isDevelopment) {
+      routes.addAll(_getDevelopmentRoutes());
     }
+
+    // Add staging-specific routes
+    if (FlavorConfig.isStaging) {
+      routes.addAll(_getStagingRoutes());
+    }
+
+    return routes;
+  }
+
+  static List<RouteBase> _getDevelopmentRoutes() {
+    return [
+      GoRoute(
+        path: '/debug',
+        name: 'debug',
+        builder: (context, state) => const DebugPage(),
+      ),
+    ];
+  }
+
+  static List<RouteBase> _getStagingRoutes() {
+    return [
+      GoRoute(
+        path: '/staging-info',
+        name: 'stagingInfo',
+        builder: (context, state) => const StagingInfoPage(),
+      ),
+    ];
   }
 }
