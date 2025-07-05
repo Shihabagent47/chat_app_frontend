@@ -1,3 +1,4 @@
+import 'package:chat_app_user/core/routing/navigation_helper.dart';
 import 'package:chat_app_user/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:chat_app_user/features/auth/presentation/bloc/auth_event.dart';
 import 'package:chat_app_user/features/auth/presentation/bloc/auth_state.dart';
@@ -5,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class RegisterPage extends StatefulWidget {
+  const RegisterPage({super.key});
+
   @override
   _RegisterPageState createState() => _RegisterPageState();
 }
@@ -43,7 +46,6 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Register')),
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           setState(() {
@@ -136,7 +138,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       _isLoading
                           ? null
                           : () {
-                            Navigator.pop(context);
+                            NavigationHelper.goBack(context);
                           },
                   child: Text('Already have an account? Login'),
                 ),

@@ -44,15 +44,15 @@ To run the app in a specific environment, use the `--target` option with `flutte
 
 - **Development**
   ```sh
-  flutter run --flavor dev -t lib/main_development.dart
+  flutter run --flavor development -t lib/main_development.dart
   ```
 - **Staging**
   ```sh
-  flutter run --flavor stage -t lib/main_staging.dart
+  flutter run --flavor staging -t lib/main_staging.dart
   ```
 - **Production**
   ```sh
-  flutter run --flavor prod -t lib/main_production.dart
+  flutter run --flavor production -t lib/main_production.dart
   ```
 
 You can use these commands for all supported platforms (Android, iOS, web, desktop). For example, to run the production flavor on web:

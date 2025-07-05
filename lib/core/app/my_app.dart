@@ -8,6 +8,8 @@ import '../../injection_container.dart' as di;
 import '../../config/flavor_config.dart';
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     final environment = AppConfig.environment;

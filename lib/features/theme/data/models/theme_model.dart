@@ -2,16 +2,11 @@ import '../../domain/entities/theme_entity.dart';
 
 class ThemeModel extends ThemeEntity {
   const ThemeModel({
-    required ThemeType themeType,
-    required bool isDarkMode,
-    String primaryColor = '#2196F3',
-    String accentColor = '#03DAC6',
-  }) : super(
-         themeType: themeType,
-         isDarkMode: isDarkMode,
-         primaryColor: primaryColor,
-         accentColor: accentColor,
-       );
+    required super.themeType,
+    required super.isDarkMode,
+    super.primaryColor,
+    super.accentColor,
+  });
 
   factory ThemeModel.fromJson(Map<String, dynamic> json) {
     return ThemeModel(

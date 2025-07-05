@@ -30,7 +30,7 @@ class DioLoggingInterceptor extends Interceptor {
   }
 
   @override
-  void onError(DioError err, ErrorInterceptorHandler handler) {
+  void onError(DioException err, ErrorInterceptorHandler handler) {
     final startTime = err.requestOptions.extra['start_time'] as DateTime?;
     final duration =
         startTime != null ? DateTime.now().difference(startTime) : null;

@@ -8,12 +8,15 @@ import 'loggin_interceptor.dart';
 class DioClient {
   final Dio _dio;
 
-  DioClient({required SecureStorageService storage}) : _dio = Dio() {
+  DioClient({
+    required SecureStorageService storage,
+    required AppEnvironment environment,
+  }) : _dio = Dio() {
     _dio.options = BaseOptions(
-      baseUrl: AppConfig.environment.baseUrl,
-      connectTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(seconds: 10),
-      contentType: 'application/json',
+      baseUrl: environment.baseUrl,
+      connectTimeout: Duration(seconds: environment.connectTimeout),
+      receiveTimeout: Duration(seconds: environment.receiveTimeout),
+      contentType: environment.headers['Content-Type'] ?? 'application/json',
     );
 
     _dio.interceptors.addAll([

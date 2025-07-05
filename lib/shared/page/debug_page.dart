@@ -3,7 +3,7 @@ import 'package:chat_app_user/config/flavor_config.dart';
 import 'package:flutter/material.dart';
 
 class DebugPage extends StatelessWidget {
-  const DebugPage({Key? key}) : super(key: key);
+  const DebugPage({super.key});
 
   @override
   Widget build(BuildContext context) {

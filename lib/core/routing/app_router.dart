@@ -4,9 +4,7 @@ import 'package:chat_app_user/features/auth/presentation/pages/login_page.dart';
 import 'package:chat_app_user/features/auth/presentation/pages/register_page.dart';
 import 'package:chat_app_user/shared/page/debug_page.dart';
 import 'package:chat_app_user/shared/page/error_page.dart';
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'route_names.dart';
 import 'route_guards.dart';
 

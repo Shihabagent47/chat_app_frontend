@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 import '../../domain/entities/user_entity.dart';
 
-enum AuthStatus { unknown, authenticated, unauthenticated }
+enum AuthStatus { unknown, loading, authenticated, unauthenticated }
 
 class AuthState extends Equatable {
   const AuthState._({
@@ -11,6 +11,8 @@ class AuthState extends Equatable {
   });
 
   const AuthState.unknown() : this._();
+
+  const AuthState.loading() : this._(status: AuthStatus.loading);
 
   const AuthState.authenticated(UserEntity user)
     : this._(status: AuthStatus.authenticated, user: user);
