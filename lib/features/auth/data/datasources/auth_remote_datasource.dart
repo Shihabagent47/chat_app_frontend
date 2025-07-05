@@ -42,7 +42,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }) async {
     try {
       final response = await networkClient.client.post(
-        '${AppConfig.environment.baseUrl}login',
+        '${AppConfig.environment.baseUrl}/auth/login',
         data: {'email': email, 'password': password},
       );
 

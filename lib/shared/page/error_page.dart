@@ -7,8 +7,7 @@ class ErrorPage extends StatelessWidget {
   final Exception? error;
   final bool showDebugInfo;
 
-  const ErrorPage({Key? key, this.error, this.showDebugInfo = false})
-    : super(key: key);
+  const ErrorPage({super.key, this.error, this.showDebugInfo = false});
 
   @override
   Widget build(BuildContext context) {

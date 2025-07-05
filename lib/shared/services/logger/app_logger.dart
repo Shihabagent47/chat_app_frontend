@@ -4,7 +4,6 @@ import 'package:chat_app_user/shared/services/logger/formatters/console_formatte
 import 'package:chat_app_user/shared/services/logger/log_level.dart';
 import 'package:logger/logger.dart';
 import 'package:flutter/foundation.dart';
-import 'formatters/console_formatter.dart';
 import 'formatters/file_formatter.dart';
 import 'formatters/network_formatter.dart';
 import 'outputs/console_output.dart' as console_output;

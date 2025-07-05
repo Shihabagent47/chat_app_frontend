@@ -2,12 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../config/app_config.dart';
 import '../../config/flavor_config.dart';
-import 'route_names.dart';
+import '../../shared/services/logger/app_logger.dart';
 
 class NavigationHelper {
   static void goToLogin(BuildContext context) {
     _logNavigation('login');
     context.goNamed('login');
+  }
+
+  static void goToRegister(BuildContext context) {
+    _logNavigation('register');
+    context.pushNamed('register');
   }
 
   static void goToDashboard(BuildContext context) {
@@ -65,7 +70,7 @@ class NavigationHelper {
   static void _logNavigation(String route, {Map<String, dynamic>? params}) {
     final environment = AppConfig.environment;
     if (environment.enableLogging) {
-      print(
+      AppLogger.info(
         '🧭 NavigationHelper: $route ${params != null ? 'with params: $params' : ''}',
       );
     }

@@ -33,6 +33,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     AuthStarted event,
     Emitter<AuthState> emit,
   ) async {
+    emit(const AuthState.loading());
     final result = await checkAuthStatus(NoParams());
 
     result.fold((failure) => emit(const AuthState.unauthenticated()), (
@@ -50,6 +51,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     AuthLoginRequested event,
     Emitter<AuthState> emit,
   ) async {
+    emit(const AuthState.loading());
     final result = await login(
       LoginParams(email: event.email, password: event.password),
     );
@@ -64,6 +66,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     AuthRegisterRequested event,
     Emitter<AuthState> emit,
   ) async {
+    emit(const AuthState.loading());
     final result = await register(
       RegisterParams(
         name: event.name,
@@ -82,6 +85,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     AuthLogoutRequested event,
     Emitter<AuthState> emit,
   ) async {
+    emit(const AuthState.loading());
     await logout(NoParams());
     emit(const AuthState.unauthenticated());
   }

@@ -33,7 +33,9 @@ Future<void> _initCore(AppEnvironment environment) async {
   sl.registerLazySingleton<SecureStorageService>(() => SecureStorageService());
 
   // Register DioClient with SecureStorageService
-  sl.registerLazySingleton<DioClient>(() => DioClient(storage: sl()));
+  sl.registerLazySingleton<DioClient>(
+    () => DioClient(storage: sl(), environment: environment),
+  );
 }
 
 Future<void> _initAuth() async {

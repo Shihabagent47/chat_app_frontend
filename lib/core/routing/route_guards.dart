@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../features/auth/presentation/bloc/auth_state.dart';
+import '../../shared/services/logger/app_logger.dart';
 
 class AuthGuard {
   static String? checkAuth(BuildContext context, GoRouterState state) {
@@ -14,7 +15,10 @@ class AuthGuard {
 
     // Log navigation in development
     if (environment.enableLogging) {
-      print('🧭 Navigation: ');
+      AppLogger.logNavigationEvent(
+        state.fullPath ?? 'unknown',
+        'Checking access',
+      );
     }
 
     // Get auth state from BLoC
@@ -25,6 +29,11 @@ class AuthGuard {
       RouteNames.userProfile,
       RouteNames.userList,
       RouteNames.settings,
+    ];
+    final publicRoutes = [
+      RouteNames.login,
+      RouteNames.register,
+      '/forgot-password',
     ];
 
     // Add development routes to protected routes
@@ -38,17 +47,21 @@ class AuthGuard {
     }
 
     if (!isAuthenticated) {
-      if (environment.enableLogging) {
-        print('🚫 Access denied to - redirecting to login');
+      final isPublic = publicRoutes.any(
+        (route) => state.uri.toString().startsWith(route),
+      );
+      if (isPublic) {
+        return null;
       }
+
+      AppLogger.warning(
+        'Access denied to ${state.uri.toString()} – redirecting to login',
+      );
       return RouteNames.login;
     }
-
     // If authenticated and trying to access login/register, redirect to dashboard
-    if (isAuthenticated) {
-      if (environment.enableLogging) {
-        print('✅ Already authenticated - redirecting to dashboard');
-      }
+    if (isAuthenticated && publicRoutes.contains(state.uri.toString())) {
+      AppLogger.info('Already authenticated – redirecting to dashboard');
       return RouteNames.dashboard;
     }
 

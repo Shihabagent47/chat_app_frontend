@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'dart:ui';
 
 import 'package:chat_app_user/config/app_config.dart';
@@ -7,7 +6,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../injection_container.dart' as di;
+import '../bloc/app_bloc_observer.dart';
 import 'my_app.dart';
+import 'package:chat_app_user/shared/services/logger/app_logger.dart';
 
 class AppRunner {
   static Future<void> run(AppEnvironment environment, Flavor flavor) async {
@@ -20,6 +21,9 @@ class AppRunner {
     // Initialize dependency injection
     await di.init(environment);
 
+    // Initialize logger
+    AppLogger.initialize();
+
     // Setup system UI
     await _setupSystemUI();
 
@@ -28,7 +32,7 @@ class AppRunner {
 
     // Setup bloc observer for debugging
     if (environment.enableLogging) {
-      //    Bloc.observer = AppBlocObserver();
+      Bloc.observer = AppBlocObserver();
     }
 
     // Run the app

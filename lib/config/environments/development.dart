@@ -6,7 +6,7 @@ class DevelopmentEnvironment extends AppEnvironment {
   String get appName => 'MyMessenger Dev';
 
   @override
-  String get baseUrl => 'https://dev-api.mymessenger.com';
+  String get baseUrl => 'http://192.168.1.101:3000';
 
   @override
   String get socketUrl => 'wss://dev-socket.mymessenger.com';

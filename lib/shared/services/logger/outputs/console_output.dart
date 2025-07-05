@@ -8,8 +8,11 @@ class ConsoleOutput extends LogOutput {
     final lines = event.lines;
 
     if (FlavorConfig.isDevelopment) {
-      // Use dart:developer log for better IDE integration
       for (final line in lines) {
+        // Enhanced print with timestamp and level for terminal
+        // print(line);
+
+        // Use developer.log for structured logging
         developer.log(
           line,
           name: 'MyMessenger',
