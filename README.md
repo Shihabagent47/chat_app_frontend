@@ -4,12 +4,19 @@ A modern, cross-platform chat application frontend built with Flutter.
 
 ## Features
 
-- Real-time messaging
-- User authentication
-- Group and private chats
-- Media sharing (images, files)
+- Real-time 1:1 and group messaging
+- User authentication (sign up, login, logout)
+- Profile management
+- Group creation and management
+- Media sharing (images, files, documents)
 - Push notifications
+- Typing and online status indicators
+- Message read receipts
+- Video calling using Webrtc
 - Responsive UI for mobile, web, and desktop
+- Multiple environment support (development, staging, production)
+- Error handling and loading states
+- Clean architecture with BLoC pattern
 
 ## Getting Started
 
@@ -19,6 +26,14 @@ A modern, cross-platform chat application frontend built with Flutter.
 - Dart
 - Android Studio or Xcode (for mobile development)
 - A backend server (not included in this repo)
+
+### Backend Server
+
+This project requires a backend server to function. You can find the official backend implementation here:
+
+👉 [chat-app-server (GitHub)](https://github.com/Shihabagent47/chat-app-server)
+
+Follow the instructions in the backend repository to set up and run the server locally or deploy it to your preferred environment.
 
 ### Installation
 
@@ -65,9 +80,31 @@ flutter run -d chrome --target=lib/main_production.dart
 
 ## Project Structure
 
-- `lib/` - Main Dart source code
-- `android/`, `ios/`, `web/`, `macos/`, `linux/`, `windows/` - Platform-specific code
-- `test/` - Unit and widget tests
+```
+lib/
+  config/
+    environments/         # Environment configs (development, staging, production)
+    app_config.dart       # App environment base class
+  core/
+    error/               # Error handling
+    usecases/            # Base use case classes
+  features/
+    auth/                # Authentication feature (bloc, data, domain, presentation)
+    chat/                # Chat feature (bloc, data, domain, presentation)
+    ...                  # Other features
+  shared/                # Shared widgets, services, utilities
+  main.dart              # Main entrypoint
+  main_development.dart  # Development flavor entrypoint
+  main_staging.dart      # Staging flavor entrypoint
+  main_production.dart   # Production flavor entrypoint
+android/                 # Android platform code
+ios/                     # iOS platform code
+web/                     # Web platform code
+macos/                   # macOS platform code
+linux/                   # Linux platform code
+windows/                 # Windows platform code
+test/                    # Unit and widget tests
+```
 
 ## Contributing
 
