@@ -10,7 +10,9 @@ abstract class AuthRepository {
   });
 
   Future<Either<Failure, AuthResponseEntity>> register({
-    required String name,
+    required String firstName,
+    required String lastName,
+    required String phone,
     required String email,
     required String password,
   });

@@ -69,7 +69,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(const AuthState.loading());
     final result = await register(
       RegisterParams(
-        name: event.name,
+        firstName: event.firstName,
+        lastName: event.lastName,
+        phone: event.phone,
         email: event.email,
         password: event.password,
       ),

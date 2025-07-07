@@ -14,7 +14,9 @@ abstract class AuthRemoteDataSource {
   });
 
   Future<AuthResponseModel> register({
-    required String name,
+    required String firstName,
+    required String lastName,
+    required String phone,
     required String email,
     required String password,
   });
@@ -72,14 +74,22 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   @override
   Future<AuthResponseModel> register({
-    required String name,
+    required String firstName,
+    required String lastName,
+    required String phone,
     required String email,
     required String password,
   }) async {
     try {
       final response = await networkClient.client.post(
         '${AppConfig.environment.baseUrl}register',
-        data: {'name': name, 'email': email, 'password': password},
+        data: {
+          'firstName': firstName,
+          'lastName': lastName,
+          'phone': phone,
+          'email': email,
+          'password': password,
+        },
       );
 
       if (response.statusCode == 201 || response.statusCode == 200) {
