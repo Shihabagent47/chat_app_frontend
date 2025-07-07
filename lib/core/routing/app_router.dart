@@ -5,6 +5,7 @@ import 'package:chat_app_user/features/auth/presentation/pages/register_page.dar
 import 'package:chat_app_user/shared/page/debug_page.dart';
 import 'package:chat_app_user/shared/page/error_page.dart';
 import 'package:go_router/go_router.dart';
+import '../../features/home/presentation/pages/home_page.dart';
 import 'route_names.dart';
 import 'route_guards.dart';
 
@@ -33,9 +34,13 @@ class AppRouter {
   }
 
   static List<RouteBase> _buildRoutes() {
-    final environment = AppConfig.environment;
-
     List<RouteBase> routes = [
+      //Home Route
+      GoRoute(
+        path: RouteNames.home,
+        name: 'home',
+        builder: (context, state) => const HomePage(),
+      ),
       // Auth Routes
       GoRoute(
         path: RouteNames.login,

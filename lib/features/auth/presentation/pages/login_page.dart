@@ -47,7 +47,7 @@ class _LoginPageState extends State<LoginPage> {
               context,
             ).showSnackBar(SnackBar(content: Text(state.message!)));
           } else if (state.status == AuthStatus.authenticated) {
-            Navigator.pushReplacementNamed(context, '/home');
+            NavigationHelper.goToHome(context);
           }
         },
         child: BlocBuilder<AuthBloc, AuthState>(

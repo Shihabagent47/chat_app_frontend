@@ -46,8 +46,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         data: {'email': email, 'password': password},
       );
 
-      if (response.statusCode == 200) {
-        final authResponse = AuthResponseModel.fromJson(response.data);
+      if (response.statusCode == 201) {
+        final authResponse = AuthResponseModel.fromJson(response.data['data']);
 
         // Save tokens to secure storage
         await secureStorage.saveTokens(
@@ -218,6 +218,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           e.response?.data['message'] ?? 'Server error',
           statusCode: e.response?.statusCode,
         );
+
       default:
         return ServerException('Unexpected error occurred');
     }

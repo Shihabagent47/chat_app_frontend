@@ -15,9 +15,9 @@ class NavigationHelper {
     context.pushNamed('register');
   }
 
-  static void goToDashboard(BuildContext context) {
-    _logNavigation('dashboard');
-    context.goNamed('dashboard');
+  static void goToHome(BuildContext context) {
+    _logNavigation('home');
+    context.goNamed('home');
   }
 
   static void goToUserProfile(BuildContext context) {

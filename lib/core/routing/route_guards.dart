@@ -26,6 +26,7 @@ class AuthGuard {
     final isAuthenticated = authBloc.state.status == AuthStatus.authenticated;
     final protectedRoutes = [
       RouteNames.dashboard,
+      RouteNames.home,
       RouteNames.userProfile,
       RouteNames.userList,
       RouteNames.settings,
@@ -62,7 +63,7 @@ class AuthGuard {
     // If authenticated and trying to access login/register, redirect to dashboard
     if (isAuthenticated && publicRoutes.contains(state.uri.toString())) {
       AppLogger.info('Already authenticated – redirecting to dashboard');
-      return RouteNames.dashboard;
+      return RouteNames.home;
     }
 
     return null; // Allow access

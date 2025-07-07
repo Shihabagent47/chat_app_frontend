@@ -45,7 +45,7 @@ class WebRTCDataSourceImpl implements WebRTCDataSource {
       ],
     };
 
-    final pc = await createPeerConnection(configuration);
+    final pc = await createPeerConnection();
 
     // Add local stream to peer connection
     if (_localStream != null) {

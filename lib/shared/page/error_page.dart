@@ -57,7 +57,7 @@ class ErrorPage extends StatelessWidget {
             ],
             const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: () => NavigationHelper.goToDashboard(context),
+              onPressed: () => NavigationHelper.goToHome(context),
               child: const Text('Go to Dashboard'),
             ),
             if (FlavorConfig.isDevelopment) ...[

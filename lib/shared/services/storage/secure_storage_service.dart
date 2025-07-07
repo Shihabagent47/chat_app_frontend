@@ -54,7 +54,7 @@ class SecureStorageService {
   Future<bool> hasValidToken() async {
     final token = await getAccessToken();
     final expiresAt = await getExpiresAt();
-
+    print('Token: $token, Expires At: $expiresAt');
     if (token == null || expiresAt == null) {
       return false;
     }

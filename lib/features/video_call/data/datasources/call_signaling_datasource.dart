@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import '../models/call_session_model.dart';
@@ -50,7 +51,21 @@ class CallSignalingDataSourceImpl implements CallSignalingDataSource {
 
   @override
   Stream<Map<String, dynamic>> onSignal(String event) {
-    return _socket.on(event).map((data) => Map<String, dynamic>.from(data));
+    final controller = StreamController<Map<String, dynamic>>();
+
+    _socket.on(event, (data) {
+      try {
+        controller.add(Map<String, dynamic>.from(data));
+      } catch (e, stack) {
+        controller.addError(e, stack);
+      }
+    });
+
+    controller.onCancel = () {
+      _socket.off(event); // Remove the listener
+    };
+
+    return controller.stream;
   }
 
   @override
