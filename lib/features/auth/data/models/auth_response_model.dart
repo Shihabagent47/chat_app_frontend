@@ -6,7 +6,6 @@ class AuthResponseModel extends AuthResponseEntity {
     required super.user,
     required super.accessToken,
     required super.refreshToken,
-    required super.expiresAt,
   });
 
   factory AuthResponseModel.fromJson(Map<String, dynamic> json) {
@@ -14,7 +13,6 @@ class AuthResponseModel extends AuthResponseEntity {
       user: UserModel.fromJson(json['user']),
       accessToken: json['access_token'] as String,
       refreshToken: json['refresh_token'] as String,
-      expiresAt: DateTime.parse(json['expires_at'] as String),
     );
   }
 
@@ -23,7 +21,6 @@ class AuthResponseModel extends AuthResponseEntity {
       'user': (user as UserModel).toJson(),
       'access_token': accessToken,
       'refresh_token': refreshToken,
-      'expires_at': expiresAt.toIso8601String(),
     };
   }
 }

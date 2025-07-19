@@ -14,7 +14,9 @@ abstract class AuthRemoteDataSource {
   });
 
   Future<AuthResponseModel> register({
-    required String name,
+    required String firstName,
+    required String lastName,
+    required String phone,
     required String email,
     required String password,
   });
@@ -46,14 +48,13 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         data: {'email': email, 'password': password},
       );
 
-      if (response.statusCode == 200) {
-        final authResponse = AuthResponseModel.fromJson(response.data);
+      if (response.statusCode == 201) {
+        final authResponse = AuthResponseModel.fromJson(response.data['data']);
 
         // Save tokens to secure storage
         await secureStorage.saveTokens(
           accessToken: authResponse.accessToken,
           refreshToken: authResponse.refreshToken,
-          expiresAt: authResponse.expiresAt,
         );
 
         // Save user data
@@ -72,24 +73,31 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   @override
   Future<AuthResponseModel> register({
-    required String name,
+    required String firstName,
+    required String lastName,
+    required String phone,
     required String email,
     required String password,
   }) async {
     try {
       final response = await networkClient.client.post(
-        '${AppConfig.environment.baseUrl}register',
-        data: {'name': name, 'email': email, 'password': password},
+        '${AppConfig.environment.baseUrl}/auth/register',
+        data: {
+          'firstName': firstName,
+          'lastName': lastName,
+          'phone': phone,
+          'email': email,
+          'password': password,
+        },
       );
 
       if (response.statusCode == 201 || response.statusCode == 200) {
-        final authResponse = AuthResponseModel.fromJson(response.data);
+        final authResponse = AuthResponseModel.fromJson(response.data['data']);
 
         // Save tokens to secure storage
         await secureStorage.saveTokens(
           accessToken: authResponse.accessToken,
           refreshToken: authResponse.refreshToken,
-          expiresAt: authResponse.expiresAt,
         );
 
         // Save user data
@@ -130,7 +138,6 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         await secureStorage.saveTokens(
           accessToken: authResponse.accessToken,
           refreshToken: authResponse.refreshToken,
-          expiresAt: authResponse.expiresAt,
         );
 
         return authResponse;
@@ -218,6 +225,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           e.response?.data['message'] ?? 'Server error',
           statusCode: e.response?.statusCode,
         );
+
       default:
         return ServerException('Unexpected error occurred');
     }

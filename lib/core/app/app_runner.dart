@@ -5,6 +5,8 @@ import 'package:chat_app_user/config/flavor_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../features/auth/presentation/bloc/auth_bloc.dart';
+import '../../features/auth/presentation/bloc/auth_event.dart';
 import '../../injection_container.dart' as di;
 import '../bloc/app_bloc_observer.dart';
 import 'my_app.dart';
@@ -34,7 +36,6 @@ class AppRunner {
     if (environment.enableLogging) {
       Bloc.observer = AppBlocObserver();
     }
-
     // Run the app
     runApp(MyApp());
   }

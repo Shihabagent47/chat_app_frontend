@@ -1,8 +1,9 @@
+import 'package:chat_app_user/core/navigation/routing/route_names.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../config/app_config.dart';
-import '../../config/flavor_config.dart';
-import '../../shared/services/logger/app_logger.dart';
+import '../../../config/app_config.dart';
+import '../../../config/flavor_config.dart';
+import '../../../shared/services/logger/app_logger.dart';
 
 class NavigationHelper {
   static void goToLogin(BuildContext context) {
@@ -15,24 +16,19 @@ class NavigationHelper {
     context.pushNamed('register');
   }
 
-  static void goToDashboard(BuildContext context) {
-    _logNavigation('dashboard');
-    context.goNamed('dashboard');
+  static void goToChatList(BuildContext context) {
+    _logNavigation(RouteNames.chatList);
+    context.goNamed(RouteNames.chatList);
   }
 
-  static void goToUserProfile(BuildContext context) {
-    _logNavigation('userProfile');
-    context.goNamed('userProfile');
+  static void goToChatRoom(BuildContext context, String chatRoomId) {
+    _logNavigation('chatRoom', params: {'id': chatRoomId});
+    context.goNamed('chatRoom', pathParameters: {'id': chatRoomId});
   }
 
-  static void goToUserDetail(BuildContext context, String userId) {
-    _logNavigation('userDetail', params: {'id': userId});
-    context.goNamed('userDetail', pathParameters: {'id': userId});
-  }
-
-  static void goToSettings(BuildContext context) {
-    _logNavigation('settings');
-    context.goNamed('settings');
+  static void goToUserList(BuildContext context) {
+    _logNavigation(RouteNames.userList);
+    context.goNamed(RouteNames.userList);
   }
 
   // Development-only navigation

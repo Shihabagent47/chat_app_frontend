@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import '../../config/app_config.dart';
 import '../../shared/services/storage/secure_storage_service.dart';
 import 'api_interceptors.dart';
+import 'auth_interceptors.dart';
 import 'loggin_interceptor.dart';
 
 class DioClient {
@@ -20,6 +21,7 @@ class DioClient {
     );
 
     _dio.interceptors.addAll([
+      AuthInterceptor(storage: storage, dio: _dio),
       ApiInterceptor(storage: storage),
       DioLoggingInterceptor(),
     ]);

@@ -1,13 +1,12 @@
 import 'package:chat_app_user/config/app_config.dart';
 import 'package:chat_app_user/config/flavor_config.dart';
-import 'package:chat_app_user/core/routing/route_names.dart';
+import 'package:chat_app_user/core/navigation/routing/route_names.dart';
 import 'package:chat_app_user/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-import '../../features/auth/presentation/bloc/auth_state.dart';
-import '../../shared/services/logger/app_logger.dart';
+import '../../../features/auth/presentation/bloc/auth_state.dart';
+import '../../../shared/services/logger/app_logger.dart';
 
 class AuthGuard {
   static String? checkAuth(BuildContext context, GoRouterState state) {
@@ -26,6 +25,9 @@ class AuthGuard {
     final isAuthenticated = authBloc.state.status == AuthStatus.authenticated;
     final protectedRoutes = [
       RouteNames.dashboard,
+      RouteNames.home,
+      RouteNames.chatList,
+      RouteNames.chatRoom,
       RouteNames.userProfile,
       RouteNames.userList,
       RouteNames.settings,
@@ -62,7 +64,7 @@ class AuthGuard {
     // If authenticated and trying to access login/register, redirect to dashboard
     if (isAuthenticated && publicRoutes.contains(state.uri.toString())) {
       AppLogger.info('Already authenticated – redirecting to dashboard');
-      return RouteNames.dashboard;
+      return RouteNames.chatList;
     }
 
     return null; // Allow access

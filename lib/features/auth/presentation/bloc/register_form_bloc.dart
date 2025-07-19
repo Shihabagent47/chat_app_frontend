@@ -49,6 +49,9 @@ class RegisterFormState extends Equatable {
     this.isLoading = false,
     this.isValid = false,
     this.errorMessage = '',
+    this.firstName = '', // Assuming firstName is part of the state
+    this.lastName = '', // Assuming lastName is part of the state
+    this.phone = '', // Assuming phone is part of the state
   });
 
   final String email;
@@ -57,6 +60,9 @@ class RegisterFormState extends Equatable {
   final bool isLoading;
   final bool isValid;
   final String errorMessage;
+  final String firstName; // Assuming firstName is part of the state
+  final String lastName; // Assuming lastName is part of the state
+  final String phone; // Assuming phone is part of the state
 
   RegisterFormState copyWith({
     String? email,
@@ -65,6 +71,9 @@ class RegisterFormState extends Equatable {
     bool? isLoading,
     bool? isValid,
     String? errorMessage,
+    String? firstName, // Assuming firstName is part of the state
+    String? lastName, // Assuming lastName is part of the state
+    String? phone, // Assuming phone is part of the state
   }) {
     return RegisterFormState(
       email: email ?? this.email,
@@ -73,6 +82,12 @@ class RegisterFormState extends Equatable {
       isLoading: isLoading ?? this.isLoading,
       isValid: isValid ?? this.isValid,
       errorMessage: errorMessage ?? this.errorMessage,
+      firstName:
+          firstName ??
+          this.firstName, // Assuming firstName is part of the state
+      lastName:
+          lastName ?? this.lastName, // Assuming lastName is part of the state
+      phone: phone ?? this.phone, // Assuming phone is part of the state
     );
   }
 
@@ -131,7 +146,9 @@ class RegisterFormBloc extends Bloc<RegisterFormEvent, RegisterFormState> {
       emit(state.copyWith(isLoading: true, errorMessage: ''));
       authBloc.add(
         AuthRegisterRequested(
-          name: '',
+          firstName: state.firstName, // Assuming firstName is part of the state
+          lastName: state.lastName, // Assuming lastName is part of the state
+          phone: state.phone, // Assuming phone is part of the state
           email: state.email,
           password: state.password,
         ),
