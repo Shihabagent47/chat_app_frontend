@@ -36,8 +36,6 @@ class AppRunner {
     if (environment.enableLogging) {
       Bloc.observer = AppBlocObserver();
     }
-    final authBloc = di.sl<AuthBloc>()..add(AuthStarted());
-
     // Run the app
     runApp(MyApp());
   }

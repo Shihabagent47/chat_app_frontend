@@ -1,7 +1,8 @@
 import 'package:chat_app_user/config/app_config.dart';
 import 'package:chat_app_user/config/flavor_config.dart';
-import 'package:chat_app_user/core/routing/navigation_helper.dart';
 import 'package:flutter/material.dart';
+
+import '../../core/navigation/routing/navigation_helper.dart';
 
 class ErrorPage extends StatelessWidget {
   final Exception? error;
@@ -57,7 +58,7 @@ class ErrorPage extends StatelessWidget {
             ],
             const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: () => NavigationHelper.goToHome(context),
+              onPressed: () => NavigationHelper.goToChatList(context),
               child: const Text('Go to Dashboard'),
             ),
             if (FlavorConfig.isDevelopment) ...[

@@ -10,7 +10,7 @@ class ConsoleOutput extends LogOutput {
     if (FlavorConfig.isDevelopment) {
       for (final line in lines) {
         // Enhanced print with timestamp and level for terminal
-        print(line);
+        // print(line);
 
         // Use developer.log for structured logging
         developer.log(

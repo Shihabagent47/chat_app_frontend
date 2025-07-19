@@ -1,10 +1,10 @@
 import 'package:dartz/dartz.dart';
 import '../repositories/chat_repository.dart';
 
-class MarkAsRead {
+class MarkAsReadUseCase {
   final ChatRepository repository;
 
-  MarkAsRead(this.repository);
+  MarkAsReadUseCase(this.repository);
 
   Future<Either<Exception, void>> call(
     String chatRoomId,

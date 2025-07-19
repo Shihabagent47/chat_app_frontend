@@ -34,23 +34,33 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     emit(const AuthState.loading());
-    final result = await checkAuthStatus(NoParams());
+    final authResult = await checkAuthStatus(NoParams());
 
-    result.fold((failure) => emit(const AuthState.unauthenticated()), (
-      isAuthenticated,
-    ) async {
-      if (isAuthenticated) {
-        await _loadCurrentUser(emit);
-      } else {
-        emit(const AuthState.unauthenticated());
-      }
-    });
+    if (authResult.isLeft()) {
+      emit(const AuthState.unauthenticated());
+      return;
+    }
+
+    final isAuthenticated = authResult.fold((l) => false, (r) => r);
+
+    if (isAuthenticated) {
+      final userResult = await getCurrentUser(NoParams());
+      if (emit.isDone) return;
+
+      userResult.fold(
+        (failure) => emit(const AuthState.unauthenticated()),
+        (user) => emit(AuthState.authenticated(user)),
+      );
+    } else {
+      emit(const AuthState.unauthenticated());
+    }
   }
 
   Future<void> _onAuthLoginRequested(
     AuthLoginRequested event,
     Emitter<AuthState> emit,
   ) async {
+    print('Login requested');
     emit(const AuthState.loading());
     final result = await login(
       LoginParams(email: event.email, password: event.password),
@@ -96,12 +106,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     AuthUserRequested event,
     Emitter<AuthState> emit,
   ) async {
+    print('User requested');
+
     await _loadCurrentUser(emit);
   }
 
   Future<void> _loadCurrentUser(Emitter<AuthState> emit) async {
     final result = await getCurrentUser(NoParams());
-
+    print('User result: $result');
     result.fold(
       (failure) => emit(const AuthState.unauthenticated()),
       (user) => emit(AuthState.authenticated(user)),

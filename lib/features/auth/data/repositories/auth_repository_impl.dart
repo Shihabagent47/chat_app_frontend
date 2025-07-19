@@ -108,7 +108,6 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<Either<Failure, bool>> isAuthenticated() async {
     try {
-      print('Checking authentication status');
       final hasValidToken = await secureStorage.hasValidToken();
       return Right(hasValidToken);
     } catch (e) {

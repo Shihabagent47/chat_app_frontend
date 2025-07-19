@@ -7,7 +7,10 @@ import 'package:chat_app_user/shared/services/storage/secure_storage_service.dar
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'config/app_config.dart';
+import 'core/navigation/bloc/navigation_bloc.dart';
 import 'core/network/dio_client.dart';
+import 'core/network/socket_io_client.dart';
+import 'core/offline/database/local_data_base.dart';
 import 'features/auth/data/datasources/auth_remote_datasource.dart';
 import 'features/auth/data/repositories/auth_repository_impl.dart';
 import 'features/auth/domain/repositories/auth_repository.dart';
@@ -18,7 +21,21 @@ import 'features/auth/domain/usecases/logout_usecase.dart';
 import 'features/auth/domain/usecases/register_usecase.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
 
+import 'features/chat/data/datasources/chat_local_datasource.dart';
+import 'features/chat/data/datasources/chat_remote_datasource.dart';
+import 'features/chat/data/repositories/chat_repository_impl.dart';
+import 'features/chat/domain/repositories/chat_repository.dart';
+import 'features/chat/domain/usecases/delete_message.dart';
+import 'features/chat/domain/usecases/get_chat_room.dart';
+import 'features/chat/domain/usecases/get_messages.dart';
+import 'features/chat/domain/usecases/mark_as_read.dart';
+import 'features/chat/domain/usecases/send_message.dart';
+import 'features/chat/presentation/bloc/chat_bloc.dart';
 import 'features/theme/presentation/theme_bloc.dart';
+import 'features/user/data/dataources/user_local_data_source.dart';
+import 'features/user/data/dataources/user_remote_data_source.dart';
+import 'features/user/data/repositories/user_repository.dart';
+import 'features/user/presentation/bloc/user_bloc.dart';
 
 final sl = GetIt.instance;
 
@@ -26,6 +43,13 @@ Future<void> init(AppEnvironment environment) async {
   await _initCore(environment);
   await _initAuth();
   await _initTheme();
+  await _initChat();
+  await _navigation();
+  await _initUser();
+}
+
+Future<void> _navigation() async {
+  sl.registerLazySingleton(() => NavigationBloc());
 }
 
 Future<void> _initCore(AppEnvironment environment) async {
@@ -36,6 +60,43 @@ Future<void> _initCore(AppEnvironment environment) async {
   sl.registerLazySingleton<DioClient>(
     () => DioClient(storage: sl(), environment: environment),
   );
+
+  //Register DatabaseService
+  sl.registerLazySingleton<DatabaseService>(() => DatabaseService());
+
+  sl.registerLazySingleton<IoClient>(
+    () => IoClient(
+      storage: sl<SecureStorageService>(),
+      environment: AppConfig.environment,
+    ),
+  );
+}
+
+Future<void> _initUser() async {
+  // Data source
+  sl.registerLazySingleton<UserRemoteDataSource>(
+    () => UserRemoteDataSourceImpl(networkClient: sl<DioClient>()),
+  );
+  // Local data source
+  sl.registerLazySingleton<UserLocalDataSource>(
+    () => UserLocalDataSourceImpl(databaseService: sl<DatabaseService>()),
+  );
+
+  // Repository
+  sl.registerLazySingleton<UserRepository>(
+    () => UserRepositoryImpl(
+      remoteDataSource: sl<UserRemoteDataSource>(),
+      localDataSource: sl<UserLocalDataSource>(),
+    ),
+  );
+
+  // Use cases
+  // sl.registerLazySingleton(() => GetUserByIdUseCase(sl()));
+  // sl.registerLazySingleton(() => GetUsersUseCase(sl()));
+  // sl.registerLazySingleton(() => SearchUsersUseCase(sl()));
+
+  //Bloc
+  sl.registerFactory(() => UserBloc(userRepository: sl<UserRepository>()));
 }
 
 Future<void> _initAuth() async {
@@ -69,6 +130,46 @@ Future<void> _initAuth() async {
       login: sl(),
       register: sl(),
       logout: sl(),
+    ),
+  );
+}
+
+Future<void> _initChat() async {
+  // Data source
+  sl.registerLazySingleton<ChatRemoteDataSource>(
+    () => ChatRemoteDataSourceImpl(
+      networkClient: sl<DioClient>(),
+      ioClient: sl<IoClient>(),
+    ),
+  );
+  // Local data source
+  sl.registerLazySingleton<ChatLocalDataSource>(
+    () => ChatLocalDataSourceImpl(databaseService: sl<DatabaseService>()),
+  );
+
+  // Repository
+  sl.registerLazySingleton<ChatRepository>(
+    () => ChatRepositoryImpl(
+      remoteDataSource: sl<ChatRemoteDataSource>(),
+      localDataSource: sl<ChatLocalDataSource>(),
+    ),
+  );
+
+  // Use cases
+  sl.registerLazySingleton(() => SendMessageUseCase(sl()));
+  sl.registerLazySingleton(() => GetMessagesUseCase(sl()));
+  sl.registerLazySingleton(() => DeleteMessageUseCase(sl()));
+  sl.registerLazySingleton(() => MarkAsReadUseCase(sl()));
+  sl.registerLazySingleton(() => GetChatRoomsUseCase(sl()));
+
+  //Bloc
+  sl.registerFactory(
+    () => ChatBloc(
+      getChatRoomsUseCase: sl(),
+      sendMessageUseCase: sl(),
+      getMessagesUseCase: sl(),
+      deleteMessageUseCase: sl(),
+      markAsReadUseCase: sl(),
     ),
   );
 }

@@ -2,10 +2,10 @@ import 'package:dartz/dartz.dart';
 import '../entities/message.dart';
 import '../repositories/chat_repository.dart';
 
-class GetMessages {
+class GetMessagesUseCase {
   final ChatRepository repository;
 
-  GetMessages(this.repository);
+  GetMessagesUseCase(this.repository);
 
   Future<Either<Exception, List<Message>>> call(String chatRoomId) async {
     return await repository.getMessages(chatRoomId);

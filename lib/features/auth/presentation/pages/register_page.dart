@@ -1,9 +1,10 @@
-import 'package:chat_app_user/core/routing/navigation_helper.dart';
 import 'package:chat_app_user/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:chat_app_user/features/auth/presentation/bloc/auth_event.dart';
 import 'package:chat_app_user/features/auth/presentation/bloc/auth_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../../../core/navigation/routing/navigation_helper.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});

@@ -1,9 +1,13 @@
 import 'package:chat_app_user/config/app_config.dart';
 import 'package:chat_app_user/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:chat_app_user/features/chat/presentation/bloc/chat_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../features/auth/presentation/bloc/auth_event.dart';
 import '../../features/theme/presentation/theme_bloc.dart';
-import '../routing/app_router.dart';
+import '../../features/user/presentation/bloc/user_bloc.dart';
+import '../navigation/bloc/navigation_bloc.dart';
+import '../navigation/routing/app_router.dart';
 import '../../injection_container.dart' as di;
 import '../../config/flavor_config.dart';
 
@@ -16,9 +20,18 @@ class MyApp extends StatelessWidget {
 
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: (_) => di.sl<AuthBloc>()),
+        BlocProvider<AuthBloc>(
+          create: (_) => di.sl<AuthBloc>()..add(AuthStarted()),
+        ),
         BlocProvider(create: (_) => di.sl<ThemeBloc>()),
+
         // Add other BLoCs here
+        BlocProvider<ChatBloc>(create: (_) => di.sl<ChatBloc>()),
+
+        //Navigation
+        BlocProvider(create: (_) => di.sl<NavigationBloc>()),
+        //Users
+        BlocProvider(create: (_) => di.sl<UserBloc>()),
       ],
       child: BlocBuilder<ThemeBloc, ThemeState>(
         builder: (context, themeState) {

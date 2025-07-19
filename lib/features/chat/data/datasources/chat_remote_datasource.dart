@@ -1,7 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:chat_app_user/core/network/dio_client.dart';
+import 'package:chat_app_user/core/network/socket_io_client.dart';
+import 'package:dio/dio.dart';
 import 'package:http/http.dart' as http;
 import 'package:socket_io_client/socket_io_client.dart' as IO;
+import '../../../../config/app_config.dart';
 import '../models/message_model.dart';
 import '../models/chat_room_model.dart';
 import '../models/media_message_model.dart';
@@ -19,25 +23,22 @@ abstract class ChatRemoteDataSource {
 }
 
 class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
-  final http.Client httpClient;
-  final IO.Socket socket;
-  final String baseUrl;
+  final DioClient networkClient;
+  final IoClient ioClient;
 
   ChatRemoteDataSourceImpl({
-    required this.httpClient,
-    required this.socket,
-    required this.baseUrl,
+    required this.networkClient,
+    required this.ioClient,
   });
 
   @override
   Future<List<MessageModel>> getMessages(String chatRoomId) async {
-    final response = await httpClient.get(
-      Uri.parse('$baseUrl/messages/$chatRoomId'),
-      headers: {'Content-Type': 'application/json'},
+    final response = await networkClient.client.get(
+      '${AppConfig.environment.baseUrl}/messages/$chatRoomId',
     );
 
     if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body);
+      final List<dynamic> data = json.decode(response.data);
       return data.map((json) => MessageModel.fromJson(json)).toList();
     } else {
       throw Exception('Failed to load messages');
@@ -46,14 +47,13 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
 
   @override
   Future<MessageModel> sendMessage(MessageModel message) async {
-    final response = await httpClient.post(
-      Uri.parse('$baseUrl/messages'),
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode(message.toJson()),
+    final response = await networkClient.client.post(
+      '/messages',
+      data: message.toJson(),
     );
 
     if (response.statusCode == 201) {
-      return MessageModel.fromJson(json.decode(response.body));
+      return MessageModel.fromJson(response.data);
     } else {
       throw Exception('Failed to send message');
     }
@@ -61,10 +61,7 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
 
   @override
   Future<void> deleteMessage(String messageId) async {
-    final response = await httpClient.delete(
-      Uri.parse('$baseUrl/messages/$messageId'),
-      headers: {'Content-Type': 'application/json'},
-    );
+    final response = await networkClient.client.delete('/messages/$messageId');
 
     if (response.statusCode != 200) {
       throw Exception('Failed to delete message');
@@ -73,10 +70,9 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
 
   @override
   Future<void> markAsRead(String chatRoomId, String messageId) async {
-    final response = await httpClient.put(
-      Uri.parse('$baseUrl/messages/$messageId/read'),
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({'chatRoomId': chatRoomId}),
+    final response = await networkClient.client.put(
+      '/messages/$messageId/read',
+      data: {'chatRoomId': chatRoomId},
     );
 
     if (response.statusCode != 200) {
@@ -86,13 +82,10 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
 
   @override
   Future<List<ChatRoomModel>> getChatRooms() async {
-    final response = await httpClient.get(
-      Uri.parse('$baseUrl/chat-rooms'),
-      headers: {'Content-Type': 'application/json'},
-    );
+    final response = await networkClient.client.get('/conversations');
 
     if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body);
+      final List<dynamic> data = response.data;
       return data.map((json) => ChatRoomModel.fromJson(json)).toList();
     } else {
       throw Exception('Failed to load chat rooms');
@@ -104,19 +97,18 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
     String filePath,
     String messageId,
   ) async {
-    final request = http.MultipartRequest(
-      'POST',
-      Uri.parse('$baseUrl/media/upload'),
+    final formData = FormData.fromMap({
+      'file': await MultipartFile.fromFile(filePath),
+      'messageId': messageId,
+    });
+
+    final response = await networkClient.client.post(
+      '/media/upload',
+      data: formData,
     );
 
-    request.files.add(await http.MultipartFile.fromPath('file', filePath));
-    request.fields['messageId'] = messageId;
-
-    final response = await request.send();
-
     if (response.statusCode == 200) {
-      final responseBody = await response.stream.bytesToString();
-      return MediaMessageModel.fromJson(json.decode(responseBody));
+      return MediaMessageModel.fromJson(response.data);
     } else {
       throw Exception('Failed to upload media');
     }
@@ -126,7 +118,7 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
   Stream<MessageModel> watchMessages(String chatRoomId) {
     final controller = StreamController<MessageModel>.broadcast();
 
-    socket.on('message_$chatRoomId', (data) {
+    ioClient.socket.on('message_$chatRoomId', (data) {
       controller.add(MessageModel.fromJson(data));
     });
 
@@ -137,7 +129,7 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
   Stream<List<String>> watchTypingUsers(String chatRoomId) {
     final controller = StreamController<List<String>>.broadcast();
 
-    socket.on('typing_$chatRoomId', (data) {
+    ioClient.socket.on('typing_$chatRoomId', (data) {
       controller.add(List<String>.from(data));
     });
 
@@ -146,7 +138,7 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
 
   @override
   Future<void> updateTypingStatus(String chatRoomId, bool isTyping) async {
-    socket.emit('typing_status', {
+    ioClient.socket.emit('typing_status', {
       'chatRoomId': chatRoomId,
       'isTyping': isTyping,
     });

@@ -1,4 +1,5 @@
 import 'package:sqflite/sqflite.dart';
+import '../../../../core/offline/database/local_data_base.dart';
 import '../models/message_model.dart';
 import '../models/chat_room_model.dart';
 import '../models/media_message_model.dart';
@@ -16,13 +17,16 @@ abstract class ChatLocalDataSource {
 }
 
 class ChatLocalDataSourceImpl implements ChatLocalDataSource {
-  final Database database;
+  final DatabaseService databaseService;
 
-  ChatLocalDataSourceImpl(this.database);
+  ChatLocalDataSourceImpl({required this.databaseService});
+
+  Future<Database> get _database => databaseService.database;
 
   @override
   Future<List<MessageModel>> getMessages(String chatRoomId) async {
-    final maps = await database.query(
+    final db = await _database;
+    final maps = await db.query(
       'messages',
       where: 'chatRoomId = ?',
       whereArgs: [chatRoomId],
@@ -34,7 +38,8 @@ class ChatLocalDataSourceImpl implements ChatLocalDataSource {
 
   @override
   Future<void> insertMessage(MessageModel message) async {
-    await database.insert(
+    final db = await _database;
+    await db.insert(
       'messages',
       message.toJson(),
       conflictAlgorithm: ConflictAlgorithm.replace,
@@ -43,7 +48,8 @@ class ChatLocalDataSourceImpl implements ChatLocalDataSource {
 
   @override
   Future<void> updateMessage(MessageModel message) async {
-    await database.update(
+    final db = await _database;
+    await db.update(
       'messages',
       message.toJson(),
       where: 'id = ?',
@@ -53,22 +59,22 @@ class ChatLocalDataSourceImpl implements ChatLocalDataSource {
 
   @override
   Future<void> deleteMessage(String messageId) async {
-    await database.delete('messages', where: 'id = ?', whereArgs: [messageId]);
+    final db = await _database;
+    await db.delete('messages', where: 'id = ?', whereArgs: [messageId]);
   }
 
   @override
   Future<List<ChatRoomModel>> getChatRooms() async {
-    final maps = await database.query(
-      'chat_rooms',
-      orderBy: 'lastActivity DESC',
-    );
+    final db = await _database;
+    final maps = await db.query('chat_rooms', orderBy: 'lastActivity DESC');
 
     return maps.map((map) => ChatRoomModel.fromJson(map)).toList();
   }
 
   @override
   Future<void> insertChatRoom(ChatRoomModel chatRoom) async {
-    await database.insert(
+    final db = await _database;
+    await db.insert(
       'chat_rooms',
       chatRoom.toJson(),
       conflictAlgorithm: ConflictAlgorithm.replace,
@@ -77,7 +83,8 @@ class ChatLocalDataSourceImpl implements ChatLocalDataSource {
 
   @override
   Future<void> updateChatRoom(ChatRoomModel chatRoom) async {
-    await database.update(
+    final db = await _database;
+    await db.update(
       'chat_rooms',
       chatRoom.toJson(),
       where: 'id = ?',
@@ -87,7 +94,8 @@ class ChatLocalDataSourceImpl implements ChatLocalDataSource {
 
   @override
   Future<void> insertMediaMessage(MediaMessageModel mediaMessage) async {
-    await database.insert(
+    final db = await _database;
+    await db.insert(
       'media_messages',
       mediaMessage.toJson(),
       conflictAlgorithm: ConflictAlgorithm.replace,
@@ -96,7 +104,8 @@ class ChatLocalDataSourceImpl implements ChatLocalDataSource {
 
   @override
   Future<MediaMessageModel?> getMediaMessage(String messageId) async {
-    final maps = await database.query(
+    final db = await _database;
+    final maps = await db.query(
       'media_messages',
       where: 'messageId = ?',
       whereArgs: [messageId],
