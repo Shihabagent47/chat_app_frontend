@@ -1,9 +1,8 @@
+import 'package:chat_app_user/features/user/domain/entities/user_entity.dart';
 import 'package:flutter/material.dart';
 
-import '../../data/models/user.dart';
-
 class UserListItem extends StatelessWidget {
-  final User user;
+  final UserEntity user;
   final VoidCallback onTap;
 
   const UserListItem({Key? key, required this.user, required this.onTap})
@@ -15,12 +14,14 @@ class UserListItem extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: ListTile(
         leading: CircleAvatar(
-          child: Text(user.name.isNotEmpty ? user.name[0].toUpperCase() : '?'),
+          child: Text(
+            user.firstName.isNotEmpty ? user.firstName[0].toUpperCase() : '?',
+          ),
         ),
-        title: Text(user.name),
+        title: Text(user.firstName),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [Text(user.email), Text('@${user.username}')],
+          children: [Text(user.email), Text('@${user.firstName}')],
         ),
         trailing: const Icon(Icons.arrow_forward_ios),
         onTap: onTap,

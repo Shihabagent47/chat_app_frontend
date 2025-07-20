@@ -25,6 +25,17 @@ class DatabaseService {
   }
 
   Future<void> _onCreate(Database db, int version) async {
+    // Create users table
+    await db.execute('''
+      CREATE TABLE users (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        email TEXT NOT NULL,
+        createdAt INTEGER NOT NULL,
+        updatedAt INTEGER NOT NULL
+      )
+    ''');
+
     // Create messages table
     await db.execute('''
       CREATE TABLE messages (

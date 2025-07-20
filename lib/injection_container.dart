@@ -3,6 +3,7 @@ import 'package:chat_app_user/features/theme/data/repositories/theme_repository_
 import 'package:chat_app_user/features/theme/domain/repositories/theme_repository.dart';
 import 'package:chat_app_user/features/theme/domain/usecases/get_theme_usecase.dart';
 import 'package:chat_app_user/features/theme/domain/usecases/save_theme_usecase.dart';
+import 'package:chat_app_user/features/user/domain/repositories/user_repository.dart';
 import 'package:chat_app_user/shared/services/storage/secure_storage_service.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -34,7 +35,9 @@ import 'features/chat/presentation/bloc/chat_bloc.dart';
 import 'features/theme/presentation/theme_bloc.dart';
 import 'features/user/data/dataources/user_local_data_source.dart';
 import 'features/user/data/dataources/user_remote_data_source.dart';
-import 'features/user/data/repositories/user_repository.dart';
+import 'features/user/data/repositories/user_repository_impl.dart';
+import 'features/user/domain/usecases/get_user_details_use_case.dart';
+import 'features/user/domain/usecases/get_users_use_case.dart';
 import 'features/user/presentation/bloc/user_bloc.dart';
 
 final sl = GetIt.instance;
@@ -94,9 +97,11 @@ Future<void> _initUser() async {
   // sl.registerLazySingleton(() => GetUserByIdUseCase(sl()));
   // sl.registerLazySingleton(() => GetUsersUseCase(sl()));
   // sl.registerLazySingleton(() => SearchUsersUseCase(sl()));
+  sl.registerLazySingleton(() => GetUserDetailsUseCase(sl<UserRepository>()));
+  sl.registerLazySingleton(() => GetUsersUseCase(sl<UserRepository>()));
 
   //Bloc
-  sl.registerFactory(() => UserBloc(userRepository: sl<UserRepository>()));
+  sl.registerFactory(() => UserBloc(getUserDetails: sl(), getUsers: sl()));
 }
 
 Future<void> _initAuth() async {

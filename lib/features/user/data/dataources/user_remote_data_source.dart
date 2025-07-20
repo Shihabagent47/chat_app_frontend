@@ -1,12 +1,11 @@
 import 'package:chat_app_user/core/network/dio_client.dart';
+import 'package:chat_app_user/features/user/data/models/user_list_response_model.dart';
 import 'package:dio/dio.dart';
-
-import '../models/user.dart';
 
 // Remote Data Source
 abstract class UserRemoteDataSource {
-  Future<List<User>> getUsers();
-  Future<User> getUserById(String id);
+  Future<UserListResponseModel> getUsers();
+  Future<UserModel> getUserById(String id);
 }
 
 class UserRemoteDataSourceImpl implements UserRemoteDataSource {
@@ -16,21 +15,23 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
     : _networkClient = networkClient;
 
   @override
-  Future<List<User>> getUsers() async {
+  Future<UserListResponseModel> getUsers() async {
     try {
       final response = await _networkClient.client.get('/users');
-      final List<dynamic> usersJson = response.data;
-      return usersJson.map((json) => User.fromJson(json)).toList();
+      final userListResponseModel = UserListResponseModel.fromJson(
+        response.data,
+      );
+      return userListResponseModel;
     } on DioException catch (e) {
       throw Exception('Failed to fetch users: ${e.message}');
     }
   }
 
   @override
-  Future<User> getUserById(String id) async {
+  Future<UserModel> getUserById(String id) async {
     try {
       final response = await _networkClient.client.get('/users/$id');
-      return User.fromJson(response.data);
+      return UserModel.fromJson(response.data);
     } on DioException catch (e) {
       throw Exception('Failed to fetch user: ${e.message}');
     }
