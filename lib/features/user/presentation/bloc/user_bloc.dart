@@ -1,20 +1,22 @@
 import 'package:bloc/bloc.dart';
+import 'package:chat_app_user/features/user/domain/entities/user_entity.dart';
+import 'package:chat_app_user/features/user/domain/repositories/user_repository.dart';
+import 'package:chat_app_user/features/user/domain/usecases/get_users_use_case.dart';
 import 'package:equatable/equatable.dart';
 
-import '../../data/models/user.dart';
-import '../../data/repositories/user_repository.dart';
+import '../../../../core/usecases/usecase.dart';
+import '../../domain/usecases/get_user_details_use_case.dart';
 
 part 'user_event.dart';
 part 'user_state.dart';
 
 class UserBloc extends Bloc<UserEvent, UserState> {
-  final UserRepository _userRepository;
+  final GetUsersUseCase getUsers;
+  final GetUserDetailsUseCase getUserDetails;
 
-  UserBloc({required UserRepository userRepository})
-    : _userRepository = userRepository,
-      super(UserInitial()) {
+  UserBloc({required this.getUserDetails, required this.getUsers})
+    : super(UserInitial()) {
     on<LoadUsers>(_onLoadUsers);
-    on<SearchUsers>(_onSearchUsers);
     on<LoadUserDetails>(_onLoadUserDetails);
     on<ClearUserDetails>(_onClearUserDetails);
     on<RefreshUsers>(_onRefreshUsers);
@@ -23,32 +25,14 @@ class UserBloc extends Bloc<UserEvent, UserState> {
   Future<void> _onLoadUsers(LoadUsers event, Emitter<UserState> emit) async {
     try {
       emit(UserLoading());
-      final users = await _userRepository.getUsers(
-        forceRefresh: event.forceRefresh,
+      final users = await getUsers(NoParams());
+      users.fold(
+        (failure) => emit(UserError(failure.message)),
+        (users) =>
+            emit(UserLoaded(users: users.data, filteredUsers: users.data)),
       );
-      emit(UserLoaded(users: users, filteredUsers: users));
     } catch (e) {
       emit(UserError(e.toString()));
-    }
-  }
-
-  Future<void> _onSearchUsers(
-    SearchUsers event,
-    Emitter<UserState> emit,
-  ) async {
-    if (state is UserLoaded) {
-      final currentState = state as UserLoaded;
-      try {
-        final filteredUsers = await _userRepository.searchUsers(event.query);
-        emit(
-          currentState.copyWith(
-            filteredUsers: filteredUsers,
-            searchQuery: event.query,
-          ),
-        );
-      } catch (e) {
-        emit(UserError(e.toString()));
-      }
     }
   }
 
@@ -58,11 +42,6 @@ class UserBloc extends Bloc<UserEvent, UserState> {
   ) async {
     try {
       emit(UserDetailsLoading());
-      final user = await _userRepository.getUserById(
-        event.userId,
-        forceRefresh: event.forceRefresh,
-      );
-      emit(UserDetailsLoaded(user));
     } catch (e) {
       emit(UserDetailsError(e.toString()));
     }

@@ -12,8 +12,8 @@ class UserInitial extends UserState {}
 class UserLoading extends UserState {}
 
 class UserLoaded extends UserState {
-  final List<User> users;
-  final List<User> filteredUsers;
+  final List<UserEntity> users;
+  final List<UserEntity> filteredUsers;
   final String searchQuery;
 
   const UserLoaded({
@@ -23,8 +23,8 @@ class UserLoaded extends UserState {
   });
 
   UserLoaded copyWith({
-    List<User>? users,
-    List<User>? filteredUsers,
+    List<UserEntity>? users,
+    List<UserEntity>? filteredUsers,
     String? searchQuery,
   }) {
     return UserLoaded(
@@ -50,7 +50,7 @@ class UserError extends UserState {
 class UserDetailsLoading extends UserState {}
 
 class UserDetailsLoaded extends UserState {
-  final User user;
+  final UserEntity user;
 
   const UserDetailsLoaded(this.user);
 

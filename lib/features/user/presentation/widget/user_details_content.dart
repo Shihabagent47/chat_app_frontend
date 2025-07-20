@@ -1,9 +1,8 @@
+import 'package:chat_app_user/features/user/domain/entities/user_entity.dart';
 import 'package:flutter/material.dart';
 
-import '../../data/models/user.dart';
-
 class UserDetailsContent extends StatelessWidget {
-  final User user;
+  final UserEntity user;
 
   const UserDetailsContent({Key? key, required this.user}) : super(key: key);
 
@@ -21,17 +20,19 @@ class UserDetailsContent extends StatelessWidget {
                 CircleAvatar(
                   radius: 50,
                   child: Text(
-                    user.name.isNotEmpty ? user.name[0].toUpperCase() : '?',
+                    user.firstName.isNotEmpty
+                        ? user.firstName[0].toUpperCase()
+                        : '?',
                     style: const TextStyle(fontSize: 32),
                   ),
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  user.name,
+                  user.firstName,
                   style: Theme.of(context).textTheme.headlineMedium,
                 ),
                 Text(
-                  '@${user.username}',
+                  '@${user.firstName}',
                   style: Theme.of(context).textTheme.bodyLarge,
                 ),
               ],
@@ -44,7 +45,6 @@ class UserDetailsContent extends StatelessWidget {
           _buildInfoCard(context, [
             _buildInfoRow(Icons.email, 'Email', user.email),
             _buildInfoRow(Icons.phone, 'Phone', user.phone),
-            _buildInfoRow(Icons.web, 'Website', user.website),
           ]),
         ],
       ),
