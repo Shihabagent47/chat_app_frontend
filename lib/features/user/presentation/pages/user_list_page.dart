@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/navigation/routing/navigation_helper.dart';
 import '../bloc/user_bloc.dart';
 import '../widget/user_Llist_item.dart';
 
@@ -74,7 +75,12 @@ class _UserListPageState extends State<UserListPage> {
                       itemCount: state.filteredUsers.length,
                       itemBuilder: (context, index) {
                         final user = state.filteredUsers[index];
-                        return UserListItem(user: user, onTap: () {});
+                        return UserListItem(
+                          user: user,
+                          onTap: () {
+                            NavigationHelper.goToChatRoom(context, user.id);
+                          },
+                        );
                       },
                     ),
                   );

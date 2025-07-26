@@ -1,4 +1,5 @@
 import 'package:chat_app_user/config/app_config.dart';
+import 'package:chat_app_user/core/app/theme.dart';
 import 'package:chat_app_user/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:chat_app_user/features/chat/presentation/bloc/chat_bloc.dart';
 import 'package:flutter/material.dart';
@@ -39,6 +40,8 @@ class MyApp extends StatelessWidget {
             title: environment.appName,
             debugShowCheckedModeBanner: environment.enableLogging,
             theme: _getTheme(themeState),
+            darkTheme: _getTheme(themeState),
+
             routerConfig: AppRouter.router,
             builder: (context, child) {
               return _AppWrapper(child: child!);
@@ -50,22 +53,11 @@ class MyApp extends StatelessWidget {
   }
 
   ThemeData _getTheme(ThemeState state) {
-    // Customize theme based on flavor
-    final primaryColor =
-        FlavorConfig.isDevelopment
-            ? Colors.red
-            : FlavorConfig.isStaging
-            ? Colors.orange
-            : Colors.blue;
-
-    return ThemeData(
-      primarySwatch: primaryColor,
-      visualDensity: VisualDensity.adaptivePlatformDensity,
-      appBarTheme: AppBarTheme(
-        backgroundColor: primaryColor,
-        foregroundColor: Colors.white,
-      ),
-    );
+    if (state.themeEntity.isDarkMode) {
+      return AppTheme.darkTheme;
+    } else {
+      return AppTheme.lightTheme;
+    }
   }
 }
 

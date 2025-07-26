@@ -49,16 +49,7 @@ class AppRouter {
             path: RouteNames.chatList,
             name: RouteNames.chatList,
             builder: (context, state) => ChatListPage(),
-            routes: [
-              // Chat Room Route
-              GoRoute(
-                path: RouteNames.chatRoom,
-                name: RouteNames.chatRoom,
-                builder:
-                    (context, state) =>
-                        ChatRoomPage(chatRoomId: state.pathParameters['id']!),
-              ),
-            ],
+            routes: [],
           ),
 
           //Users Route
@@ -77,6 +68,15 @@ class AppRouter {
             ],
           ),
         ],
+      ),
+
+      // Chat Room Route
+      GoRoute(
+        path: RouteNames.chatRoom,
+        name: RouteNames.chatRoom,
+        builder:
+            (context, state) =>
+                ChatRoomPage(chatRoomId: state.pathParameters['id']!),
       ),
 
       // Auth Routes

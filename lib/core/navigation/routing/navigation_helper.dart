@@ -22,8 +22,8 @@ class NavigationHelper {
   }
 
   static void goToChatRoom(BuildContext context, String chatRoomId) {
-    _logNavigation('chatRoom', params: {'id': chatRoomId});
-    context.goNamed('chatRoom', pathParameters: {'id': chatRoomId});
+    _logNavigation(RouteNames.chatRoom, params: {'id': chatRoomId});
+    context.pushNamed(RouteNames.chatRoom, pathParameters: {'id': chatRoomId});
   }
 
   static void goToUserList(BuildContext context) {

@@ -4,6 +4,7 @@ import 'package:chat_app_user/features/auth/presentation/bloc/auth_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/navigation/routing/navigation_helper.dart';
+import '../../../../shared/widgets/inputs/custom_text_field.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -60,12 +61,8 @@ class _LoginPageState extends State<LoginPage> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    TextFormField(
+                    CustomTextField(
                       controller: _emailController,
-                      decoration: InputDecoration(
-                        labelText: 'Email',
-                        border: OutlineInputBorder(),
-                      ),
                       keyboardType: TextInputType.emailAddress,
                       enabled: !isLoading, // Disable during loading
                       validator: (value) {
@@ -77,14 +74,13 @@ class _LoginPageState extends State<LoginPage> {
                         }
                         return null;
                       },
+                      label: 'Email',
+                      hint: 'Enter your email',
                     ),
                     SizedBox(height: 16),
-                    TextFormField(
+                    CustomTextField(
                       controller: _passwordController,
-                      decoration: InputDecoration(
-                        labelText: 'Password',
-                        border: OutlineInputBorder(),
-                      ),
+
                       obscureText: true,
                       enabled: !isLoading, // Disable during loading
                       validator: (value) {
@@ -93,6 +89,8 @@ class _LoginPageState extends State<LoginPage> {
                         }
                         return null;
                       },
+                      label: 'Password',
+                      hint: 'Enter your password',
                     ),
                     SizedBox(height: 24),
                     SizedBox(
@@ -115,16 +113,6 @@ class _LoginPageState extends State<LoginPage> {
                                 NavigationHelper.goToRegister(context);
                               },
                       child: Text('Don\'t have an account? Register'),
-                    ),
-
-                    TextButton(
-                      onPressed:
-                          isLoading
-                              ? null
-                              : () {
-                                print(state.status);
-                              },
-                      child: Text('Skip'),
                     ),
                   ],
                 ),
