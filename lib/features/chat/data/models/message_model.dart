@@ -17,33 +17,33 @@ class MessageModel extends Message {
     return MessageModel(
       id: json['id'],
       senderId: json['senderId'],
-      chatRoomId: json['chatRoomId'],
+      chatRoomId: json['conversationId'], // note: renamed field
       content: json['content'],
-      type: MessageType.values.firstWhere(
-        (e) => e.toString().split('.').last == json['type'],
-        orElse: () => MessageType.text,
-      ),
-      status: MessageStatus.values.firstWhere(
-        (e) => e.toString().split('.').last == json['status'],
-        orElse: () => MessageStatus.sent,
-      ),
-      timestamp: DateTime.parse(json['timestamp']),
-      replyToId: json['replyToId'],
-      metadata: json['metadata'],
+      type: MessageType.text, // default, since not in JSON
+      status: MessageStatus.sent, // default, since not in JSON
+      timestamp: DateTime.parse(json['createdAt']),
+      replyToId: json['replyToMessageId'],
+      metadata: {
+        'isEdited': json['isEdited'],
+        'isDeleted': json['isDeleted'],
+        'readCount': json['readCount'],
+        'sender': json['sender'],
+        'updatedAt': json['updatedAt'],
+      },
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
-      'senderId': senderId,
-      'chatRoomId': chatRoomId,
+      // 'id': id,
+      // 'senderId': senderId,
+      // 'chatRoomId': chatRoomId,
       'content': content,
-      'type': type.toString().split('.').last,
-      'status': status.toString().split('.').last,
-      'timestamp': timestamp.toIso8601String(),
-      'replyToId': replyToId,
-      'metadata': metadata,
+      // 'type': type.toString().split('.').last,
+      // 'status': status.toString().split('.').last,
+      // 'timestamp': timestamp.toIso8601String(),
+      // 'replyToId': replyToId,
+      // 'metadata': metadata,
     };
   }
 

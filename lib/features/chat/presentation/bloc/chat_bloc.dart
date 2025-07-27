@@ -1,5 +1,6 @@
 import 'package:chat_app_user/features/chat/domain/usecases/mark_as_read.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../data/models/send_message_params.dart';
 import '../../domain/usecases/get_chat_room.dart';
 import '../../domain/usecases/send_message.dart';
 import '../../domain/usecases/get_messages.dart';
@@ -38,7 +39,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     try {
       final chatRooms = await getChatRoomsUseCase();
       chatRooms.fold(
-        (failure) => emit(ChatError('Failed to load chat rooms')),
+        (failure) => emit(ChatError('Failed to load chat rooms: $failure')),
         (chatRooms) => emit(ChatRoomsLoaded(chatRooms)),
       );
     } catch (e) {
@@ -53,7 +54,12 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     emit(ChatLoading());
     try {
       final messages = await getMessagesUseCase(event.chatRoomId);
-      // emit(MessagesLoaded(messages: messages, chatRoomId: event.chatRoomId));
+      messages.fold(
+        (failure) => emit(ChatError('Failed to load messages: $failure')),
+        (messages) => emit(
+          MessagesLoaded(messages: messages, chatRoomId: event.chatRoomId),
+        ),
+      );
     } catch (e) {
       emit(ChatError('Failed to load messages: ${e.toString()}'));
     }
@@ -64,15 +70,18 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     Emitter<ChatState> emit,
   ) async {
     try {
-      // final message = await sendMessageUseCase(
-      //   SendMessageParams(
-      //     chatRoomId: event.chatRoomId,
-      //     content: event.content,
-      //     mediaPath: event.mediaPath,
-      //     mediaType: event.mediaType,
-      //   ),
-      // );
-      // emit(MessageSent(message));
+      final message = await sendMessageUseCase(
+        SendMessageParams(
+          chatRoomId: event.chatRoomId,
+          content: event.content,
+          mediaPath: event.mediaPath,
+          mediaType: event.mediaType,
+        ),
+      );
+      message.fold(
+        (failure) => emit(ChatError('Failed to send message: $failure')),
+        (message) => emit(MessageSent(message)),
+      );
     } catch (e) {
       emit(ChatError('Failed to send message: ${e.toString()}'));
     }

@@ -1,3 +1,4 @@
+import 'package:chat_app_user/core/navigation/routing/navigation_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/entities/chat_room.dart';
@@ -35,7 +36,12 @@ class _ChatListPageState extends State<ChatListPage> {
               itemCount: state.chatRooms.length,
               itemBuilder: (context, index) {
                 final chatRoom = state.chatRooms[index];
-                return ChatRoomListTile(chatRoom: chatRoom, onTap: () {});
+                return ChatRoomListTile(
+                  chatRoom: chatRoom,
+                  onTap: () {
+                    NavigationHelper.goToChatRoom(context, chatRoom.id);
+                  },
+                );
               },
             );
           } else if (state is ChatError) {

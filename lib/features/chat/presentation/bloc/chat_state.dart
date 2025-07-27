@@ -38,3 +38,9 @@ class ChatError extends ChatState {
   final String message;
   ChatError(this.message);
 }
+
+class NoChatRooms extends ChatState {}
+
+class NoMessages extends ChatState {}
+
+class NewChat extends ChatState {}

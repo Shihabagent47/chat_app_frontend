@@ -21,7 +21,6 @@ import 'features/auth/domain/usecases/login_usecase.dart';
 import 'features/auth/domain/usecases/logout_usecase.dart';
 import 'features/auth/domain/usecases/register_usecase.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
-
 import 'features/chat/data/datasources/chat_local_datasource.dart';
 import 'features/chat/data/datasources/chat_remote_datasource.dart';
 import 'features/chat/data/repositories/chat_repository_impl.dart';

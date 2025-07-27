@@ -22,9 +22,9 @@ class ChatRepositoryImpl implements ChatRepository {
   Future<Either<Exception, List<ChatRoom>>> getChatRooms() async {
     try {
       final remoteChatRooms = await remoteDataSource.getChatRooms();
-      for (final chatRoom in remoteChatRooms) {
-        await localDataSource.insertChatRoom(chatRoom);
-      }
+      // for (final chatRoom in remoteChatRooms) {
+      //   await localDataSource.insertChatRoom(chatRoom);
+      // }
       return Right(remoteChatRooms);
     } catch (e) {
       try {
@@ -42,9 +42,9 @@ class ChatRepositoryImpl implements ChatRepository {
   ) async {
     try {
       final remoteMessages = await remoteDataSource.getMessages(chatRoomId);
-      for (final message in remoteMessages) {
-        await localDataSource.insertMessage(message);
-      }
+      // for (final message in remoteMessages) {
+      //   await localDataSource.insertMessage(message);
+      // }
       return Right(remoteMessages);
     } catch (e) {
       try {
@@ -60,10 +60,10 @@ class ChatRepositoryImpl implements ChatRepository {
   Future<Either<Exception, Message>> sendMessage(Message message) async {
     try {
       final messageModel = MessageModel.fromEntity(message);
-      await localDataSource.insertMessage(messageModel);
+      //  await localDataSource.insertMessage(messageModel);
 
       final sentMessage = await remoteDataSource.sendMessage(messageModel);
-      await localDataSource.updateMessage(sentMessage);
+      //   await localDataSource.updateMessage(sentMessage);
 
       return Right(sentMessage);
     } catch (e) {

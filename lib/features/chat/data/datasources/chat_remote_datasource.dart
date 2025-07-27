@@ -34,11 +34,11 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
   @override
   Future<List<MessageModel>> getMessages(String chatRoomId) async {
     final response = await networkClient.client.get(
-      '${AppConfig.environment.baseUrl}/messages/$chatRoomId',
+      '${AppConfig.environment.baseUrl}/conversations/$chatRoomId/messages',
     );
 
     if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.data);
+      final List<dynamic> data = response.data['data']['data'];
       return data.map((json) => MessageModel.fromJson(json)).toList();
     } else {
       throw Exception('Failed to load messages');
@@ -48,7 +48,7 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
   @override
   Future<MessageModel> sendMessage(MessageModel message) async {
     final response = await networkClient.client.post(
-      '/messages',
+      '/conversations/${message.chatRoomId}/messages',
       data: message.toJson(),
     );
 
@@ -84,11 +84,14 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
   Future<List<ChatRoomModel>> getChatRooms() async {
     final response = await networkClient.client.get('/conversations');
 
-    if (response.statusCode == 200) {
-      final List<dynamic> data = response.data;
+    final rawData = response.data;
+    if (response.statusCode == 200 &&
+        rawData['data'] != null &&
+        rawData['data']['data'] is List) {
+      final List<dynamic> data = rawData['data']['data'];
       return data.map((json) => ChatRoomModel.fromJson(json)).toList();
     } else {
-      throw Exception('Failed to load chat rooms');
+      throw Exception('Failed to load chat rooms: Invalid format or status');
     }
   }
 

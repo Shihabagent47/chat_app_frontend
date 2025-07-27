@@ -20,17 +20,24 @@ class ChatRoomModel extends ChatRoom {
       id: json['id'],
       name: json['name'],
       description: json['description'],
-      avatarUrl: json['avatarUrl'],
+      avatarUrl: json['photo'], // Map photo -> avatarUrl
       type: ChatRoomType.values.firstWhere(
         (e) => e.toString().split('.').last == json['type'],
         orElse: () => ChatRoomType.private,
       ),
-      participantIds: List<String>.from(json['participantIds']),
-      lastMessageId: json['lastMessageId'],
-      lastActivity: DateTime.parse(json['lastActivity']),
+      participantIds:
+          (json['participants'] as List)
+              .map<String>((p) => p['userId'] as String)
+              .toList(),
+      lastMessageId: json['lastMessage']?['id'],
+      lastActivity: DateTime.parse(json['updatedAt']),
       createdAt: DateTime.parse(json['createdAt']),
       unreadCount: json['unreadCount'] ?? 0,
-      metadata: json['metadata'],
+      metadata: {
+        'creator': json['creator'],
+        'participants': json['participants'],
+        'lastMessage': json['lastMessage'],
+      },
     );
   }
 

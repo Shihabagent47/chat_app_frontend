@@ -96,7 +96,8 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
                             },
                           ),
                         ),
-                        TypingIndicator(),
+                        Text('${state.messages.length}'),
+                        //   TypingIndicator(),
                       ],
                     );
                   } else if (state is ChatError) {
@@ -124,7 +125,16 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
                 },
               ),
             ),
-            MessageInput(onSendMessage: (s) => _scrollToBottom()),
+
+            MessageInput(
+              onSendMessage: (s) {
+                context.read<ChatBloc>().add(
+                  SendMessage(chatRoomId: widget.chatRoomId, content: s),
+                );
+
+                _scrollToBottom();
+              },
+            ),
           ],
         ),
       ),
