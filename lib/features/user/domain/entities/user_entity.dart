@@ -30,37 +30,3 @@ class UserEntity extends Equatable {
     about,
   ];
 }
-
-class UserListResponseEntity extends Equatable {
-  final bool success;
-  final List<UserEntity> data;
-  final MetaEntity meta;
-  final String message;
-
-  const UserListResponseEntity({
-    required this.success,
-    required this.data,
-    required this.meta,
-    required this.message,
-  });
-
-  @override
-  List<Object?> get props => [success, data, meta, message];
-}
-
-class MetaEntity extends Equatable {
-  final int page;
-  final int limit;
-  final int total;
-  final int pages;
-
-  const MetaEntity({
-    required this.page,
-    required this.limit,
-    required this.total,
-    required this.pages,
-  });
-
-  @override
-  List<Object?> get props => [page, limit, total, pages];
-}

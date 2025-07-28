@@ -31,13 +31,14 @@ import 'features/chat/domain/usecases/get_messages.dart';
 import 'features/chat/domain/usecases/mark_as_read.dart';
 import 'features/chat/domain/usecases/send_message.dart';
 import 'features/chat/presentation/bloc/chat_bloc.dart';
+import 'features/chat/presentation/bloc/chat_list_bloc.dart';
 import 'features/theme/presentation/theme_bloc.dart';
 import 'features/user/data/dataources/user_local_data_source.dart';
 import 'features/user/data/dataources/user_remote_data_source.dart';
 import 'features/user/data/repositories/user_repository_impl.dart';
 import 'features/user/domain/usecases/get_user_details_use_case.dart';
 import 'features/user/domain/usecases/get_users_use_case.dart';
-import 'features/user/presentation/bloc/user_bloc.dart';
+import 'features/user/presentation/bloc/user_list_bloc.dart';
 
 final sl = GetIt.instance;
 
@@ -81,7 +82,7 @@ Future<void> _initUser() async {
   );
   // Local data source
   sl.registerLazySingleton<UserLocalDataSource>(
-    () => UserLocalDataSourceImpl(databaseService: sl<DatabaseService>()),
+    () => UserLocalDataSourceImpl(),
   );
 
   // Repository
@@ -100,7 +101,9 @@ Future<void> _initUser() async {
   sl.registerLazySingleton(() => GetUsersUseCase(sl<UserRepository>()));
 
   //Bloc
-  sl.registerFactory(() => UserBloc(getUserDetails: sl(), getUsers: sl()));
+  sl.registerFactory(
+    () => UserListBloc(getUsersUseCase: sl<GetUsersUseCase>()),
+  );
 }
 
 Future<void> _initAuth() async {
@@ -142,7 +145,7 @@ Future<void> _initChat() async {
   // Data source
   sl.registerLazySingleton<ChatRemoteDataSource>(
     () => ChatRemoteDataSourceImpl(
-      networkClient: sl<DioClient>(),
+      dioClient: sl<DioClient>(),
       ioClient: sl<IoClient>(),
     ),
   );
@@ -169,13 +172,14 @@ Future<void> _initChat() async {
   //Bloc
   sl.registerFactory(
     () => ChatBloc(
-      getChatRoomsUseCase: sl(),
       sendMessageUseCase: sl(),
       getMessagesUseCase: sl(),
       deleteMessageUseCase: sl(),
       markAsReadUseCase: sl(),
     ),
   );
+
+  sl.registerFactory(() => ChatListBloc(getChatRoomsUseCase: sl()));
 }
 
 Future<void> _initTheme() async {

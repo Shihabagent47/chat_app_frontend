@@ -5,8 +5,9 @@ import 'package:chat_app_user/features/chat/presentation/bloc/chat_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../features/auth/presentation/bloc/auth_event.dart';
+import '../../features/chat/presentation/bloc/chat_list_bloc.dart';
 import '../../features/theme/presentation/theme_bloc.dart';
-import '../../features/user/presentation/bloc/user_bloc.dart';
+import '../../features/user/presentation/bloc/user_list_bloc.dart';
 import '../navigation/bloc/navigation_bloc.dart';
 import '../navigation/routing/app_router.dart';
 import '../../injection_container.dart' as di;
@@ -32,7 +33,9 @@ class MyApp extends StatelessWidget {
         //Navigation
         BlocProvider(create: (_) => di.sl<NavigationBloc>()),
         //Users
-        BlocProvider(create: (_) => di.sl<UserBloc>()),
+        BlocProvider(create: (_) => di.sl<UserListBloc>()),
+        //Chat List
+        BlocProvider(create: (_) => di.sl<ChatListBloc>()),
       ],
       child: BlocBuilder<ThemeBloc, ThemeState>(
         builder: (context, themeState) {

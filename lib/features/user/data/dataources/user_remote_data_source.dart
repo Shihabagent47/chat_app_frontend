@@ -1,7 +1,9 @@
 import 'package:chat_app_user/core/network/dio_client.dart';
 import 'package:chat_app_user/features/user/data/models/user_list_response_model.dart';
+import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 
+import '../../../../core/error/failures.dart';
 import '../../../../core/model/api_response.dart';
 import '../../../../core/model/paginated_list_response.dart';
 import '../../../../core/repositories/base_repository.dart';
@@ -9,34 +11,31 @@ import '../models/query_params.dart';
 
 // Remote Data Source
 abstract class UserRemoteDataSource {
-  Future<PaginatedListResponse<UserModel>> getUsers(UserQueryParams queryParams,);
-  Future<ApiResponse<UserModel>> getUserById(String id);
+  Future<PaginatedListResponse<UserModel>> fetchUsers(UserQueryParams params);
+  Future<UserModel> fetchUserById(String id);
 }
 
-class UserRemoteDataSourceImpl extends BaseRepository implements UserRemoteDataSource {
+class UserRemoteDataSourceImpl extends BaseRepository
+    implements UserRemoteDataSource {
   UserRemoteDataSourceImpl({required super.dioClient});
 
-
   @override
-  Future<PaginatedListResponse<UserModel>> getUsers(UserQueryParams queryParams,) async {
-    try {
-      final response = await dioClient.client.get('/users');
-      final userListResponseModel = UserListResponseModel.fromJson(
-        response.data,
-      );
-      return userListResponseModel;
-    } on DioException catch (e) {
-      throw Exception('Failed to fetch users: ${e.message}');
-    }
+  Future<PaginatedListResponse<UserModel>> fetchUsers(
+    UserQueryParams params,
+  ) async {
+    return await getPaginatedList<UserModel>(
+      '/users', // Replace with your actual endpoint
+      UserModel.fromJson,
+      queryParams: params,
+    );
   }
 
   @override
-  Future<UserModel> getUserById(String id) async {
-    try {
-      final response = await dioClient.client.get('/users/$id');
-      return UserModel.fromJson(response.data);
-    } on DioException catch (e) {
-      throw Exception('Failed to fetch user: ${e.message}');
-    }
+  Future<UserModel> fetchUserById(String id) async {
+    final response = await getSingle<UserModel>(
+      '/users/$id', // Replace with your actual endpoint
+      UserModel.fromJson,
+    );
+    return response.data!;
   }
 }

@@ -3,9 +3,12 @@ import 'package:dartz/dartz.dart';
 
 import '../../../../core/error/exceptions.dart';
 import '../../../../core/error/failures.dart';
+import '../../../../core/model/paginated_list_response.dart';
+import '../../../auth/data/models/user_model.dart';
 import '../../domain/repositories/user_repository.dart';
 import '../dataources/user_local_data_source.dart';
 import '../dataources/user_remote_data_source.dart';
+import '../models/query_params.dart';
 
 class UserRepositoryImpl implements UserRepository {
   final UserRemoteDataSource _remoteDataSource;
@@ -18,19 +21,12 @@ class UserRepositoryImpl implements UserRepository {
        _localDataSource = localDataSource;
 
   @override
-  Future<Either<Failure, UserListResponseEntity>> getUsers({
-    bool forceRefresh = false,
-  }) async {
+  Future<Either<Failure, PaginatedListResponse<UserEntity>>> getUsers(
+    UserQueryParams queryParams,
+  ) async {
     try {
-      // if (!forceRefresh) {
-      //   final cachedUsers = await _localDataSource.getCachedUsers();
-      //   // if (cachedUsers.isNotEmpty) {
-      //   //   return cachedUsers;
-      //   // }
-      // }
+      final users = await _remoteDataSource.fetchUsers(queryParams);
 
-      final users = await _remoteDataSource.getUsers();
-      //await _localDataSource.cacheUsers(users.data);
       return Right(users);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));

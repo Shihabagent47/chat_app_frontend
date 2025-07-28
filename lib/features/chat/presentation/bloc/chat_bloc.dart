@@ -13,16 +13,13 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   final GetMessagesUseCase getMessagesUseCase;
   final DeleteMessageUseCase deleteMessageUseCase;
   final MarkAsReadUseCase markAsReadUseCase;
-  final GetChatRoomsUseCase getChatRoomsUseCase;
 
   ChatBloc({
     required this.sendMessageUseCase,
     required this.getMessagesUseCase,
     required this.deleteMessageUseCase,
     required this.markAsReadUseCase,
-    required this.getChatRoomsUseCase,
   }) : super(ChatInitial()) {
-    on<LoadChatRooms>(_onLoadChatRooms);
     on<LoadMessages>(_onLoadMessages);
     on<SendMessage>(_onSendMessage);
     on<DeleteMessage>(_onDeleteMessage);
@@ -31,30 +28,16 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     on<UserTyping>(_onUserTyping);
   }
 
-  Future<void> _onLoadChatRooms(
-    LoadChatRooms event,
-    Emitter<ChatState> emit,
-  ) async {
-    emit(ChatLoading());
-    try {
-      final chatRooms = await getChatRoomsUseCase();
-      chatRooms.fold(
-        (failure) => emit(ChatError('Failed to load chat rooms: $failure')),
-        (chatRooms) => emit(ChatRoomsLoaded(chatRooms)),
-      );
-    } catch (e) {
-      emit(ChatError('Failed to load chat rooms: ${e.toString()}'));
-    }
-  }
-
   Future<void> _onLoadMessages(
     LoadMessages event,
     Emitter<ChatState> emit,
   ) async {
     emit(ChatLoading());
     try {
-      final messages = await getMessagesUseCase(event.chatRoomId);
-      messages.fold(
+      final result = await getMessagesUseCase(
+        GetMessagesParams(chatRoomId: event.chatRoomId),
+      );
+      result.fold(
         (failure) => emit(ChatError('Failed to load messages: $failure')),
         (messages) => emit(
           MessagesLoaded(messages: messages, chatRoomId: event.chatRoomId),
@@ -70,15 +53,15 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     Emitter<ChatState> emit,
   ) async {
     try {
-      final message = await sendMessageUseCase(
-        SendMessageParams(
-          chatRoomId: event.chatRoomId,
-          content: event.content,
-          mediaPath: event.mediaPath,
-          mediaType: event.mediaType,
-        ),
+      final messageParams = SendMessageParams(
+        chatRoomId: event.chatRoomId,
+        content: event.content,
+        mediaPath: event.mediaPath,
+        mediaType: event.mediaType,
       );
-      message.fold(
+
+      final result = await sendMessageUseCase(messageParams);
+      result.fold(
         (failure) => emit(ChatError('Failed to send message: $failure')),
         (message) => emit(MessageSent(message)),
       );
@@ -92,8 +75,13 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     Emitter<ChatState> emit,
   ) async {
     try {
-      await deleteMessageUseCase(event.messageId);
-      emit(MessageDeleted(event.messageId));
+      final result = await deleteMessageUseCase(
+        DeleteMessageParams(messageId: event.messageId),
+      );
+      result.fold(
+        (failure) => emit(ChatError('Failed to delete message: $failure')),
+        (_) => emit(MessageDeleted(event.messageId)),
+      );
     } catch (e) {
       emit(ChatError('Failed to delete message: ${e.toString()}'));
     }
@@ -101,12 +89,16 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
   Future<void> _onMarkAsRead(MarkAsRead event, Emitter<ChatState> emit) async {
     try {
-      // await markAsReadUseCase(
-      //   MarkAsReadParams(
-      //     chatRoomId: event.chatRoomId,
-      //     messageId: event.messageId,
-      //   ),
-      // );
+      final result = await markAsReadUseCase(
+        MarkAsReadParams(
+          chatRoomId: event.chatRoomId,
+          messageId: event.messageId,
+        ),
+      );
+      result.fold(
+        (failure) => emit(ChatError('Failed to mark as read: $failure')),
+        (_) => {}, // Success - no specific state change needed
+      );
     } catch (e) {
       emit(ChatError('Failed to mark as read: ${e.toString()}'));
     }

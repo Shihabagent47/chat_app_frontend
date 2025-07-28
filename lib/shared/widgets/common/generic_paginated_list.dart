@@ -21,11 +21,14 @@ class GenericPaginatedList<T> extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<GenericPaginatedList<T>> createState() => _GenericPaginatedListState<T>();
+  State<GenericPaginatedList<T>> createState() =>
+      _GenericPaginatedListState<T>();
 }
 
 class _GenericPaginatedListState<T> extends State<GenericPaginatedList<T>> {
   final ScrollController _scrollController = ScrollController();
+  bool _isLoadingMore = false;
+  bool _hasReachedMax = false;
 
   @override
   void initState() {
@@ -42,8 +45,8 @@ class _GenericPaginatedListState<T> extends State<GenericPaginatedList<T>> {
   }
 
   void _onScroll() {
-    if (_isBottom) {
-      widget.bloc.add(LoadMore());
+    if (_isBottom && !_isLoadingMore && !_hasReachedMax) {
+      _loadMore();
     }
   }
 
@@ -51,102 +54,145 @@ class _GenericPaginatedListState<T> extends State<GenericPaginatedList<T>> {
     if (!_scrollController.hasClients) return false;
     final maxScroll = _scrollController.position.maxScrollExtent;
     final currentScroll = _scrollController.offset;
-    return currentScroll >= (maxScroll * 0.9);
+    // Trigger loading when user is 200 pixels from the bottom
+    return currentScroll >= (maxScroll - 200);
+  }
+
+  void _loadMore() {
+    if (!_isLoadingMore && !_hasReachedMax) {
+      setState(() {
+        _isLoadingMore = true;
+      });
+      widget.bloc.add(LoadMore());
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<GenericListBloc<T>, GenericListState<T>>(
+    return BlocListener<GenericListBloc<T>, GenericListState<T>>(
       bloc: widget.bloc,
-      builder: (context, state) {
-        if (state is ListInitial<T> ||
-            (state is ListLoading<T> && state.currentItems.isEmpty)) {
-          return widget.loadingWidget ??
-              const Center(child: CircularProgressIndicator());
-        }
-
-        if (state is ListError<T> && state.currentItems.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.error_outline, size: 64, color: Colors.grey[400]),
-                const SizedBox(height: 16),
-                Text(
-                  state.message,
-                  style: Theme.of(context).textTheme.titleMedium,
-                  textAlign: TextAlign.center,
-                ),
-                if (state.errors.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  ...state.errors.map((error) => Text(
-                    error,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Colors.red,
-                    ),
-                    textAlign: TextAlign.center,
-                  )),
-                ],
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () => widget.bloc.add(const LoadList(refresh: true)),
-                  child: const Text('Retry'),
-                ),
-              ],
-            ),
-          );
-        }
-
-        List<T> items = [];
-        bool isLoadingMore = false;
-        bool hasReachedMax = false;
-
+      listener: (context, state) {
+        // Update local loading state based on bloc state
         if (state is ListLoaded<T>) {
-          items = state.items;
-          hasReachedMax = state.hasReachedMax;
+          _isLoadingMore = false;
+          _hasReachedMax = state.hasReachedMax;
         } else if (state is ListLoading<T>) {
-          items = state.currentItems;
-          isLoadingMore = state.isLoadingMore;
+          _isLoadingMore = state.isLoadingMore;
         } else if (state is ListError<T>) {
-          items = state.currentItems;
+          _isLoadingMore = false;
         }
-
-        if (items.isEmpty) {
-          return widget.emptyWidget ??
-              const Center(child: Text('No items found'));
-        }
-
-        Widget listView = ListView.builder(
-          controller: _scrollController,
-          padding: widget.padding,
-          itemCount: items.length + (isLoadingMore ? 1 : 0),
-          itemBuilder: (context, index) {
-            if (index >= items.length) {
-              return const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: CircularProgressIndicator(),
-                ),
-              );
-            }
-            return widget.itemBuilder(context, items[index], index);
-          },
-        );
-
-        if (widget.enableRefresh) {
-          return RefreshIndicator(
-            onRefresh: () async {
-              widget.bloc.add(RefreshList());
-              // Wait for the refresh to complete
-              await widget.bloc.stream
-                  .firstWhere((state) => state is! ListLoading<T>);
-            },
-            child: listView,
-          );
-        }
-
-        return listView;
       },
+      child: BlocBuilder<GenericListBloc<T>, GenericListState<T>>(
+        bloc: widget.bloc,
+        builder: (context, state) {
+          // Handle initial loading state
+          if (state is ListInitial<T> ||
+              (state is ListLoading<T> && state.currentItems.isEmpty)) {
+            return widget.loadingWidget ??
+                const Center(child: CircularProgressIndicator());
+          }
+
+          // Handle error state with no items
+          if (state is ListError<T> && state.currentItems.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, size: 64, color: Colors.grey[400]),
+                  const SizedBox(height: 16),
+                  Text(
+                    state.message,
+                    style: Theme.of(context).textTheme.titleMedium,
+                    textAlign: TextAlign.center,
+                  ),
+                  if (state.errors.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    ...state.errors.map(
+                      (error) => Text(
+                        error,
+                        style: Theme.of(
+                          context,
+                        ).textTheme.bodyMedium?.copyWith(color: Colors.red),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      _isLoadingMore = false;
+                      _hasReachedMax = false;
+                      widget.bloc.add(const LoadList(refresh: true));
+                    },
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          // Extract items from current state
+          List<T> items = [];
+          bool showBottomLoader = false;
+
+          if (state is ListLoaded<T>) {
+            items = state.items;
+            _hasReachedMax = state.hasReachedMax;
+            showBottomLoader = false;
+          } else if (state is ListLoading<T>) {
+            items = state.currentItems;
+            showBottomLoader = state.isLoadingMore && items.isNotEmpty;
+          } else if (state is ListError<T>) {
+            items = state.currentItems;
+            showBottomLoader = false;
+          }
+
+          // Handle empty state
+          if (items.isEmpty) {
+            return widget.emptyWidget ??
+                const Center(child: Text('No items found'));
+          }
+
+          // Build the list view
+          Widget listView = ListView.builder(
+            controller: _scrollController,
+            padding: widget.padding,
+            itemCount: items.length + (showBottomLoader ? 1 : 0),
+            itemBuilder: (context, index) {
+              // Show loading indicator at the bottom
+              if (index >= items.length) {
+                return Container(
+                  alignment: Alignment.center,
+                  child: const SizedBox(
+                    height: 24,
+                    width: 24,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                );
+              }
+              return widget.itemBuilder(context, items[index], index);
+            },
+          );
+
+          // Add pull-to-refresh if enabled
+          if (widget.enableRefresh) {
+            return RefreshIndicator(
+              onRefresh: () async {
+                _isLoadingMore = false;
+                _hasReachedMax = false;
+                widget.bloc.add(RefreshList());
+                // Wait for the refresh to complete
+                await widget.bloc.stream.firstWhere(
+                  (state) => state is! ListLoading<T>,
+                );
+              },
+              child: listView,
+            );
+          }
+
+          return listView;
+        },
+      ),
     );
   }
 }
