@@ -77,7 +77,7 @@ Future<void> _initCore(AppEnvironment environment) async {
 Future<void> _initUser() async {
   // Data source
   sl.registerLazySingleton<UserRemoteDataSource>(
-    () => UserRemoteDataSourceImpl(networkClient: sl<DioClient>()),
+    () => UserRemoteDataSourceImpl(dioClient: sl<DioClient>()),
   );
   // Local data source
   sl.registerLazySingleton<UserLocalDataSource>(

@@ -2,22 +2,25 @@ import 'package:chat_app_user/core/network/dio_client.dart';
 import 'package:chat_app_user/features/user/data/models/user_list_response_model.dart';
 import 'package:dio/dio.dart';
 
+import '../../../../core/model/api_response.dart';
+import '../../../../core/model/paginated_list_response.dart';
+import '../../../../core/repositories/base_repository.dart';
+import '../models/query_params.dart';
+
 // Remote Data Source
 abstract class UserRemoteDataSource {
-  Future<UserListResponseModel> getUsers();
-  Future<UserModel> getUserById(String id);
+  Future<PaginatedListResponse<UserModel>> getUsers(UserQueryParams queryParams,);
+  Future<ApiResponse<UserModel>> getUserById(String id);
 }
 
-class UserRemoteDataSourceImpl implements UserRemoteDataSource {
-  final DioClient _networkClient;
+class UserRemoteDataSourceImpl extends BaseRepository implements UserRemoteDataSource {
+  UserRemoteDataSourceImpl({required super.dioClient});
 
-  UserRemoteDataSourceImpl({required DioClient networkClient})
-    : _networkClient = networkClient;
 
   @override
-  Future<UserListResponseModel> getUsers() async {
+  Future<PaginatedListResponse<UserModel>> getUsers(UserQueryParams queryParams,) async {
     try {
-      final response = await _networkClient.client.get('/users');
+      final response = await dioClient.client.get('/users');
       final userListResponseModel = UserListResponseModel.fromJson(
         response.data,
       );
@@ -30,7 +33,7 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
   @override
   Future<UserModel> getUserById(String id) async {
     try {
-      final response = await _networkClient.client.get('/users/$id');
+      final response = await dioClient.client.get('/users/$id');
       return UserModel.fromJson(response.data);
     } on DioException catch (e) {
       throw Exception('Failed to fetch user: ${e.message}');
