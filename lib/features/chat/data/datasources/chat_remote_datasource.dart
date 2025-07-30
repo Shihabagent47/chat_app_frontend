@@ -6,49 +6,53 @@ import 'package:dio/dio.dart';
 import 'package:http/http.dart' as http;
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import '../../../../config/app_config.dart';
+import '../../../../core/model/paginated_list_response.dart';
+import '../../../../core/repositories/base_repository.dart';
+import '../models/chat_message_qury_params.dart';
+import '../models/chat_query_params.dart';
 import '../models/message_model.dart';
 import '../models/chat_room_model.dart';
 import '../models/media_message_model.dart';
 
 abstract class ChatRemoteDataSource {
-  Future<List<MessageModel>> getMessages(String chatRoomId);
+  Future<PaginatedListResponse<MessageModel>> getMessages(
+    String chatRoomId,
+    ChatMessageQueryParams params,
+  );
   Future<MessageModel> sendMessage(MessageModel message);
   Future<void> deleteMessage(String messageId);
   Future<void> markAsRead(String chatRoomId, String messageId);
-  Future<List<ChatRoomModel>> getChatRooms();
+  Future<PaginatedListResponse<ChatRoomModel>> getChatRooms(
+    ChatQueryParams params,
+  );
   Future<MediaMessageModel> uploadMedia(String filePath, String messageId);
   Stream<MessageModel> watchMessages(String chatRoomId);
   Stream<List<String>> watchTypingUsers(String chatRoomId);
   Future<void> updateTypingStatus(String chatRoomId, bool isTyping);
 }
 
-class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
-  final DioClient networkClient;
+class ChatRemoteDataSourceImpl extends BaseRepository
+    implements ChatRemoteDataSource {
   final IoClient ioClient;
 
-  ChatRemoteDataSourceImpl({
-    required this.networkClient,
-    required this.ioClient,
-  });
+  ChatRemoteDataSourceImpl({required this.ioClient, required super.dioClient});
 
   @override
-  Future<List<MessageModel>> getMessages(String chatRoomId) async {
-    final response = await networkClient.client.get(
-      '${AppConfig.environment.baseUrl}/messages/$chatRoomId',
+  Future<PaginatedListResponse<MessageModel>> getMessages(
+    String chatRoomId,
+    ChatMessageQueryParams params,
+  ) async {
+    return getPaginatedList(
+      '/conversations/$chatRoomId/messages',
+      MessageModel.fromJson,
+      queryParams: params,
     );
-
-    if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.data);
-      return data.map((json) => MessageModel.fromJson(json)).toList();
-    } else {
-      throw Exception('Failed to load messages');
-    }
   }
 
   @override
   Future<MessageModel> sendMessage(MessageModel message) async {
-    final response = await networkClient.client.post(
-      '/messages',
+    final response = await dioClient.client.post(
+      '/conversations/${message.chatRoomId}/messages',
       data: message.toJson(),
     );
 
@@ -61,7 +65,7 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
 
   @override
   Future<void> deleteMessage(String messageId) async {
-    final response = await networkClient.client.delete('/messages/$messageId');
+    final response = await dioClient.client.delete('/messages/$messageId');
 
     if (response.statusCode != 200) {
       throw Exception('Failed to delete message');
@@ -70,7 +74,7 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
 
   @override
   Future<void> markAsRead(String chatRoomId, String messageId) async {
-    final response = await networkClient.client.put(
+    final response = await dioClient.client.put(
       '/messages/$messageId/read',
       data: {'chatRoomId': chatRoomId},
     );
@@ -81,15 +85,14 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
   }
 
   @override
-  Future<List<ChatRoomModel>> getChatRooms() async {
-    final response = await networkClient.client.get('/conversations');
-
-    if (response.statusCode == 200) {
-      final List<dynamic> data = response.data;
-      return data.map((json) => ChatRoomModel.fromJson(json)).toList();
-    } else {
-      throw Exception('Failed to load chat rooms');
-    }
+  Future<PaginatedListResponse<ChatRoomModel>> getChatRooms(
+    ChatQueryParams params,
+  ) async {
+    return await getPaginatedList(
+      '/conversations',
+      ChatRoomModel.fromJson,
+      queryParams: params,
+    );
   }
 
   @override
@@ -102,7 +105,7 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
       'messageId': messageId,
     });
 
-    final response = await networkClient.client.post(
+    final response = await dioClient.client.post(
       '/media/upload',
       data: formData,
     );

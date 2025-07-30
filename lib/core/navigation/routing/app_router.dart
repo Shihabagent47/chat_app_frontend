@@ -6,6 +6,7 @@ import 'package:chat_app_user/features/chat/presentation/pages/chat_list_page.da
 import 'package:chat_app_user/shared/page/debug_page.dart';
 import 'package:chat_app_user/shared/page/error_page.dart';
 import 'package:go_router/go_router.dart';
+import '../../../features/auth/presentation/pages/auth_check_page.dart';
 import '../../../features/chat/presentation/pages/chaat_room_page.dart';
 import '../../../features/user/presentation/pages/user_details_page.dart';
 import '../../../features/user/presentation/pages/user_list_page.dart';
@@ -25,7 +26,7 @@ class AppRouter {
     final environment = AppConfig.environment;
 
     return GoRouter(
-      initialLocation: RouteNames.home,
+      initialLocation: RouteNames.authCheck,
       debugLogDiagnostics: environment.enableLogging,
       redirect: AuthGuard.checkAuth,
       errorBuilder:
@@ -49,16 +50,7 @@ class AppRouter {
             path: RouteNames.chatList,
             name: RouteNames.chatList,
             builder: (context, state) => ChatListPage(),
-            routes: [
-              // Chat Room Route
-              GoRoute(
-                path: RouteNames.chatRoom,
-                name: RouteNames.chatRoom,
-                builder:
-                    (context, state) =>
-                        ChatRoomPage(chatRoomId: state.pathParameters['id']!),
-              ),
-            ],
+            routes: [],
           ),
 
           //Users Route
@@ -79,6 +71,15 @@ class AppRouter {
         ],
       ),
 
+      // Chat Room Route
+      GoRoute(
+        path: RouteNames.chatRoom,
+        name: RouteNames.chatRoom,
+        builder:
+            (context, state) =>
+                ChatRoomPage(chatRoomId: state.pathParameters['id']!),
+      ),
+
       // Auth Routes
       GoRoute(
         path: RouteNames.login,
@@ -89,6 +90,11 @@ class AppRouter {
         path: RouteNames.register,
         name: 'register',
         builder: (context, state) => RegisterPage(),
+      ),
+      GoRoute(
+        path: RouteNames.authCheck,
+        name: 'authCheck',
+        builder: (context, state) => const AuthCheckPage(),
       ),
     ];
 

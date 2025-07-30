@@ -1,6 +1,8 @@
+import 'package:chat_app_user/shared/services/logger/app_logger.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 import '../../config/app_config.dart';
+import '../../config/flavor_config.dart';
 import '../../shared/services/storage/secure_storage_service.dart';
 
 class IoClient {
@@ -17,8 +19,8 @@ class IoClient {
              .enableReconnection()
              .setReconnectionAttempts(5)
              .setReconnectionDelay(2000)
-             // .setTimeout(environment.socketTimeout ?? 10000)
-             // .setExtraHeaders(environment.socketHeaders ?? {})
+             .setTimeout(10000)
+             .setExtraHeaders({})
              .build(),
        ) {
     _setupSocketListeners(storage);
@@ -26,24 +28,24 @@ class IoClient {
 
   void _setupSocketListeners(SecureStorageService storage) {
     _socket.onConnect((_) {
-      print('Socket connected');
+      logSocketEvent('connect');
       _authenticateSocket(storage);
     });
 
     _socket.onDisconnect((_) {
-      print('Socket disconnected');
+      logSocketEvent('disconnect');
     });
 
     _socket.onConnectError((error) {
-      print('Socket connection error: $error');
+      logSocketError(error.toString());
     });
 
     _socket.onError((error) {
-      print('Socket error: $error');
+      logSocketError(error.toString());
     });
 
     _socket.onReconnect((_) {
-      print('Socket reconnected');
+      logSocketEvent('reconnect');
       _authenticateSocket(storage);
     });
   }
@@ -55,7 +57,7 @@ class IoClient {
         _socket.emit('authenticate', {'token': token});
       }
     } catch (e) {
-      print('Socket authentication error: $e');
+      logSocketError('Failed to authenticate socket: $e');
     }
   }
 
@@ -75,5 +77,20 @@ class IoClient {
 
   void dispose() {
     _socket.dispose();
+  }
+
+  static void logSocketEvent(
+    String event, {
+    dynamic data,
+    bool isIncoming = true,
+  }) {
+    final direction = isIncoming ? '📥' : '📤';
+    if (FlavorConfig.isDevelopment) {
+      AppLogger.info('$direction Socket: $event', data);
+    }
+  }
+
+  static void logSocketError(String error) {
+    AppLogger.error('Socket error: $error');
   }
 }

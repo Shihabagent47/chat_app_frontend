@@ -1,123 +1,183 @@
 import 'package:chat_app_user/features/chat/domain/usecases/mark_as_read.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../domain/usecases/get_chat_room.dart';
+import '../../../../core/bloc/generic_list_bloc.dart';
+import '../../../../core/model/paginated_list_response.dart';
+import '../../../../core/model/query_params.dart';
+import '../../data/models/chat_message_qury_params.dart';
+import '../../data/models/send_message_params.dart';
+import '../../domain/entities/message.dart';
 import '../../domain/usecases/send_message.dart';
 import '../../domain/usecases/get_messages.dart';
 import '../../domain/usecases/delete_message.dart';
 import 'chat_event.dart';
 import 'chat_state.dart';
 
-class ChatBloc extends Bloc<ChatEvent, ChatState> {
+class ChatBloc extends GenericListBloc<Message> {
   final SendMessageUseCase sendMessageUseCase;
   final GetMessagesUseCase getMessagesUseCase;
   final DeleteMessageUseCase deleteMessageUseCase;
   final MarkAsReadUseCase markAsReadUseCase;
-  final GetChatRoomsUseCase getChatRoomsUseCase;
+
+  String? _currentChatRoomId;
 
   ChatBloc({
     required this.sendMessageUseCase,
     required this.getMessagesUseCase,
     required this.deleteMessageUseCase,
     required this.markAsReadUseCase,
-    required this.getChatRoomsUseCase,
-  }) : super(ChatInitial()) {
-    on<LoadChatRooms>(_onLoadChatRooms);
-    on<LoadMessages>(_onLoadMessages);
+  }) : super() {
+    // Add chat-specific event handlers
     on<SendMessage>(_onSendMessage);
     on<DeleteMessage>(_onDeleteMessage);
     on<MarkAsRead>(_onMarkAsRead);
     on<MessageReceived>(_onMessageReceived);
     on<UserTyping>(_onUserTyping);
+    on<LoadMessages>(_onLoadMessages);
   }
 
-  Future<void> _onLoadChatRooms(
-    LoadChatRooms event,
-    Emitter<ChatState> emit,
+  // Implement required abstract methods from GenericListBloc
+  @override
+  Future<PaginatedListResponse<Message>> fetchData(
+    QueryParams queryParams,
   ) async {
-    emit(ChatLoading());
-    try {
-      final chatRooms = await getChatRoomsUseCase();
-      chatRooms.fold(
-        (failure) => emit(ChatError('Failed to load chat rooms')),
-        (chatRooms) => emit(ChatRoomsLoaded(chatRooms)),
-      );
-    } catch (e) {
-      emit(ChatError('Failed to load chat rooms: ${e.toString()}'));
+    if (_currentChatRoomId == null) {
+      throw Exception('Chat room ID not set');
     }
+
+    final params = GetMessagesParams(
+      chatRoomId: _currentChatRoomId!,
+      queryParams: queryParams as ChatMessageQueryParams,
+    );
+
+    final result = await getMessagesUseCase(params);
+    return result.fold(
+      (failure) => throw Exception(failure.toString()),
+      (response) => response,
+    );
   }
 
+  @override
+  QueryParams getDefaultQueryParams() {
+    return ChatMessageQueryParams(page: 1, limit: 20); // Adjust as needed
+  }
+
+  @override
+  QueryParams getNextPageQueryParams(QueryParams currentParams, int nextPage) {
+    final chatParams = currentParams as ChatMessageQueryParams;
+    return ChatMessageQueryParams(
+      page: nextPage,
+      limit: chatParams.limit,
+      // Copy other chat-specific parameters if any
+    );
+  }
+
+  // Override the inherited _onLoadList to handle chat-specific logic
   Future<void> _onLoadMessages(
     LoadMessages event,
-    Emitter<ChatState> emit,
+    Emitter<GenericListState<Message>> emit,
   ) async {
-    emit(ChatLoading());
-    try {
-      final messages = await getMessagesUseCase(event.chatRoomId);
-      // emit(MessagesLoaded(messages: messages, chatRoomId: event.chatRoomId));
-    } catch (e) {
-      emit(ChatError('Failed to load messages: ${e.toString()}'));
-    }
-  }
+    _currentChatRoomId = event.chatRoomId;
 
-  Future<void> _onSendMessage(
-    SendMessage event,
-    Emitter<ChatState> emit,
-  ) async {
-    try {
-      // final message = await sendMessageUseCase(
-      //   SendMessageParams(
-      //     chatRoomId: event.chatRoomId,
-      //     content: event.content,
-      //     mediaPath: event.mediaPath,
-      //     mediaType: event.mediaType,
-      //   ),
-      // );
-      // emit(MessageSent(message));
-    } catch (e) {
-      emit(ChatError('Failed to send message: ${e.toString()}'));
-    }
-  }
+    // Convert to LoadList event and call parent handler
+    final loadListEvent = LoadList(
+      queryParams: event.queryParams,
+      refresh: event.refresh,
+    );
 
-  Future<void> _onDeleteMessage(
-    DeleteMessage event,
-    Emitter<ChatState> emit,
-  ) async {
-    try {
-      await deleteMessageUseCase(event.messageId);
-      emit(MessageDeleted(event.messageId));
-    } catch (e) {
-      emit(ChatError('Failed to delete message: ${e.toString()}'));
-    }
-  }
+    await super.onLoadList(loadListEvent, emit);
 
-  Future<void> _onMarkAsRead(MarkAsRead event, Emitter<ChatState> emit) async {
-    try {
-      // await markAsReadUseCase(
-      //   MarkAsReadParams(
-      //     chatRoomId: event.chatRoomId,
-      //     messageId: event.messageId,
-      //   ),
-      // );
-    } catch (e) {
-      emit(ChatError('Failed to mark as read: ${e.toString()}'));
-    }
-  }
-
-  void _onMessageReceived(MessageReceived event, Emitter<ChatState> emit) {
-    final currentState = state;
-    if (currentState is MessagesLoaded) {
-      final updatedMessages = [...currentState.messages, event.message];
+    // Convert the emitted state to chat-specific state if needed
+    if (state is ListLoaded<Message>) {
+      final loadedState = state as ListLoaded<Message>;
       emit(
         MessagesLoaded(
-          messages: updatedMessages,
-          chatRoomId: currentState.chatRoomId,
-          typingUsers: currentState.typingUsers,
+          items: loadedState.items,
+          meta: loadedState.meta,
+          hasReachedMax: loadedState.hasReachedMax,
+          chatRoomId: event.chatRoomId,
+          currentQueryParams: loadedState.currentQueryParams,
         ),
       );
     }
   }
 
-  void _onUserTyping(UserTyping event, Emitter<ChatState> emit) {
+  Future<void> _onSendMessage(
+    SendMessage event,
+    Emitter<GenericListState<Message>> emit,
+  ) async {
+    try {
+      final messageParams = SendMessageParams(
+        chatRoomId: event.chatRoomId,
+        content: event.content,
+        mediaPath: event.mediaPath,
+        mediaType: event.mediaType,
+      );
+
+      final result = await sendMessageUseCase(messageParams);
+      result.fold(
+        (failure) =>
+            emit(ChatError(message: 'Failed to send message: $failure')),
+        (message) => emit(MessageSent(message)),
+      );
+    } catch (e) {
+      emit(ChatError(message: 'Failed to send message: ${e.toString()}'));
+    }
+  }
+
+  Future<void> _onDeleteMessage(
+    DeleteMessage event,
+    Emitter<GenericListState<Message>> emit,
+  ) async {
+    try {
+      final result = await deleteMessageUseCase(
+        DeleteMessageParams(messageId: event.messageId),
+      );
+      result.fold(
+        (failure) =>
+            emit(ChatError(message: 'Failed to delete message: $failure')),
+        (_) => emit(MessageDeleted(event.messageId)),
+      );
+    } catch (e) {
+      emit(ChatError(message: 'Failed to delete message: ${e.toString()}'));
+    }
+  }
+
+  Future<void> _onMarkAsRead(
+    MarkAsRead event,
+    Emitter<GenericListState<Message>> emit,
+  ) async {
+    try {
+      final result = await markAsReadUseCase(
+        MarkAsReadParams(
+          chatRoomId: event.chatRoomId,
+          messageId: event.messageId,
+        ),
+      );
+      result.fold(
+        (failure) =>
+            emit(ChatError(message: 'Failed to mark as read: $failure')),
+        (_) => {}, // Success - no specific state change needed
+      );
+    } catch (e) {
+      emit(ChatError(message: 'Failed to mark as read: ${e.toString()}'));
+    }
+  }
+
+  void _onMessageReceived(
+    MessageReceived event,
+    Emitter<GenericListState<Message>> emit,
+  ) {
+    final currentState = state;
+    if (currentState is MessagesLoaded) {
+      final updatedMessages = [...currentState.items, event.message];
+      emit(currentState.copyWith(messages: updatedMessages));
+    }
+  }
+
+  void _onUserTyping(
+    UserTyping event,
+    Emitter<GenericListState<Message>> emit,
+  ) {
     final currentState = state;
     if (currentState is MessagesLoaded) {
       final updatedTypingUsers = Map<String, bool>.from(
@@ -129,13 +189,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         updatedTypingUsers.remove(event.userId);
       }
 
-      emit(
-        MessagesLoaded(
-          messages: currentState.messages,
-          chatRoomId: currentState.chatRoomId,
-          typingUsers: updatedTypingUsers,
-        ),
-      );
+      emit(currentState.copyWith(typingUsers: updatedTypingUsers));
     }
   }
 }

@@ -4,6 +4,9 @@ import 'package:chat_app_user/features/auth/presentation/bloc/auth_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/navigation/routing/navigation_helper.dart';
+import '../../../../shared/widgets/inputs/custom_text_field.dart';
+import '../widgets/app_icon.dart';
+import '../widgets/app_title.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -53,80 +56,80 @@ class _LoginPageState extends State<LoginPage> {
           builder: (context, state) {
             final isLoading = state.status == AuthStatus.loading;
 
-            return Padding(
-              padding: EdgeInsets.all(16.0),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    TextFormField(
-                      controller: _emailController,
-                      decoration: InputDecoration(
-                        labelText: 'Email',
-                        border: OutlineInputBorder(),
-                      ),
-                      keyboardType: TextInputType.emailAddress,
-                      enabled: !isLoading, // Disable during loading
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter your email';
-                        }
-                        if (!value.contains('@')) {
-                          return 'Please enter a valid email';
-                        }
-                        return null;
-                      },
-                    ),
-                    SizedBox(height: 16),
-                    TextFormField(
-                      controller: _passwordController,
-                      decoration: InputDecoration(
-                        labelText: 'Password',
-                        border: OutlineInputBorder(),
-                      ),
-                      obscureText: true,
-                      enabled: !isLoading, // Disable during loading
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter your password';
-                        }
-                        return null;
-                      },
-                    ),
-                    SizedBox(height: 24),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton(
-                        onPressed: isLoading ? null : _login,
-                        child:
-                            isLoading
-                                ? CircularProgressIndicator(color: Colors.white)
-                                : Text('Login'),
-                      ),
-                    ),
-                    SizedBox(height: 16),
-                    TextButton(
-                      onPressed:
-                          isLoading
-                              ? null
-                              : () {
-                                NavigationHelper.goToRegister(context);
-                              },
-                      child: Text('Don\'t have an account? Register'),
-                    ),
+            return Center(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // Simple app icon
+                        AppIcon(),
+                        const SizedBox(height: 32),
+                        // App name
+                        AppTitle(),
+                        const SizedBox(height: 48),
 
-                    TextButton(
-                      onPressed:
-                          isLoading
-                              ? null
-                              : () {
-                                print(state.status);
-                              },
-                      child: Text('Skip'),
+                        CustomTextField(
+                          controller: _emailController,
+                          keyboardType: TextInputType.emailAddress,
+                          enabled: !isLoading, // Disable during loading
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter your email';
+                            }
+                            if (!value.contains('@')) {
+                              return 'Please enter a valid email';
+                            }
+                            return null;
+                          },
+                          label: 'Email',
+                          hint: 'Enter your email',
+                        ),
+                        SizedBox(height: 16),
+                        CustomTextField(
+                          controller: _passwordController,
+
+                          obscureText: true,
+                          enabled: !isLoading, // Disable during loading
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter your password';
+                            }
+                            return null;
+                          },
+                          label: 'Password',
+                          hint: 'Enter your password',
+                        ),
+                        SizedBox(height: 24),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 50,
+                          child: ElevatedButton(
+                            onPressed: isLoading ? null : _login,
+                            child:
+                                isLoading
+                                    ? CircularProgressIndicator(
+                                      color: Colors.white,
+                                    )
+                                    : Text('Login'),
+                          ),
+                        ),
+                        SizedBox(height: 16),
+                        TextButton(
+                          onPressed:
+                              isLoading
+                                  ? null
+                                  : () {
+                                    NavigationHelper.goToRegister(context);
+                                  },
+                          child: Text('Don\'t have an account? Register'),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
             );

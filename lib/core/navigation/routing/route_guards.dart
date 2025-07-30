@@ -36,6 +36,7 @@ class AuthGuard {
       RouteNames.login,
       RouteNames.register,
       '/forgot-password',
+      RouteNames.authCheck,
     ];
 
     // Add development routes to protected routes
