@@ -18,6 +18,15 @@ A modern, cross-platform chat application frontend built with Flutter.
 - Error handling and loading states
 - Clean architecture with BLoC pattern
 
+## Screenshots
+
+<div align="center">
+  <img src="images/screen-shot-1.jpg" alt="Chat App Screenshot 1" width="250"/>
+  <img src="images/screen-shot-2.jpg" alt="Chat App Screenshot 2" width="250"/>
+  <img src="images/screen-shot-3.jpg" alt="Chat App Screenshot 3" width="250"/>
+  <img src="images/screen-shot-4.jpg" alt="Chat App Screenshot 4" width="250"/>
+</div>
+
 ## Getting Started
 
 ### Prerequisites
