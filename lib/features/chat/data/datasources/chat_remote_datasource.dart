@@ -8,13 +8,17 @@ import 'package:socket_io_client/socket_io_client.dart' as IO;
 import '../../../../config/app_config.dart';
 import '../../../../core/model/paginated_list_response.dart';
 import '../../../../core/repositories/base_repository.dart';
+import '../models/chat_message_qury_params.dart';
 import '../models/chat_query_params.dart';
 import '../models/message_model.dart';
 import '../models/chat_room_model.dart';
 import '../models/media_message_model.dart';
 
 abstract class ChatRemoteDataSource {
-  Future<List<MessageModel>> getMessages(String chatRoomId);
+  Future<PaginatedListResponse<MessageModel>> getMessages(
+    String chatRoomId,
+    ChatMessageQueryParams params,
+  );
   Future<MessageModel> sendMessage(MessageModel message);
   Future<void> deleteMessage(String messageId);
   Future<void> markAsRead(String chatRoomId, String messageId);
@@ -34,17 +38,15 @@ class ChatRemoteDataSourceImpl extends BaseRepository
   ChatRemoteDataSourceImpl({required this.ioClient, required super.dioClient});
 
   @override
-  Future<List<MessageModel>> getMessages(String chatRoomId) async {
-    final response = await dioClient.client.get(
-      '${AppConfig.environment.baseUrl}/conversations/$chatRoomId/messages',
+  Future<PaginatedListResponse<MessageModel>> getMessages(
+    String chatRoomId,
+    ChatMessageQueryParams params,
+  ) async {
+    return getPaginatedList(
+      '/conversations/$chatRoomId/messages',
+      MessageModel.fromJson,
+      queryParams: params,
     );
-
-    if (response.statusCode == 200) {
-      final List<dynamic> data = response.data['data']['data'];
-      return data.map((json) => MessageModel.fromJson(json)).toList();
-    } else {
-      throw Exception('Failed to load messages');
-    }
   }
 
   @override

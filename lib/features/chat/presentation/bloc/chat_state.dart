@@ -1,46 +1,71 @@
-import '../../domain/entities/chat_room.dart';
+import '../../../../core/bloc/generic_list_bloc.dart';
+import '../../../../core/model/pagination_meta.dart';
+import '../../../../core/model/query_params.dart';
 import '../../domain/entities/message.dart';
 
-abstract class ChatState {}
-
-class ChatInitial extends ChatState {}
-
-class ChatLoading extends ChatState {}
-
-class ChatRoomsLoaded extends ChatState {
-  final List<ChatRoom> chatRooms;
-  ChatRoomsLoaded(this.chatRooms);
+abstract class ChatState extends GenericListState<Message> {
+  const ChatState();
 }
 
-class MessagesLoaded extends ChatState {
-  final List<Message> messages;
+class ChatInitial extends ListInitial<Message> implements ChatState {}
+
+class ChatLoading extends ListLoading<Message> implements ChatState {
+  const ChatLoading({super.currentItems, super.isLoadingMore});
+}
+
+class MessagesLoaded extends ListLoaded<Message> implements ChatState {
   final String chatRoomId;
   final Map<String, bool> typingUsers;
 
-  MessagesLoaded({
-    required this.messages,
+  const MessagesLoaded({
+    required super.items,
+    required super.meta,
+    required super.hasReachedMax,
     required this.chatRoomId,
     this.typingUsers = const {},
+    super.currentQueryParams,
   });
+
+  @override
+  List<Object?> get props => [...super.props, chatRoomId, typingUsers];
+
+  MessagesLoaded copyWith({
+    List<Message>? messages,
+    PaginationMeta? meta,
+    bool? hasReachedMax,
+    String? chatRoomId,
+    Map<String, bool>? typingUsers,
+    QueryParams? currentQueryParams,
+  }) {
+    return MessagesLoaded(
+      items: messages ?? this.items,
+      meta: meta ?? this.meta,
+      hasReachedMax: hasReachedMax ?? this.hasReachedMax,
+      chatRoomId: chatRoomId ?? this.chatRoomId,
+      typingUsers: typingUsers ?? this.typingUsers,
+      currentQueryParams: currentQueryParams ?? this.currentQueryParams,
+    );
+  }
+}
+
+class ChatError extends ListError<Message> implements ChatState {
+  const ChatError({required super.message, super.errors, super.currentItems});
 }
 
 class MessageSent extends ChatState {
   final Message message;
-  MessageSent(this.message);
+
+  const MessageSent(this.message);
+
+  @override
+  List<Object?> get props => [message];
 }
 
 class MessageDeleted extends ChatState {
   final String messageId;
-  MessageDeleted(this.messageId);
+
+  const MessageDeleted(this.messageId);
+
+  @override
+  List<Object?> get props => [messageId];
 }
-
-class ChatError extends ChatState {
-  final String message;
-  ChatError(this.message);
-}
-
-class NoChatRooms extends ChatState {}
-
-class NoMessages extends ChatState {}
-
-class NewChat extends ChatState {}

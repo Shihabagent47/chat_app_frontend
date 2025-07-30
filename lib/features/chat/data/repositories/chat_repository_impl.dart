@@ -9,6 +9,7 @@ import '../../domain/entities/media_message.dart';
 import '../../domain/repositories/chat_repository.dart';
 import '../datasources/chat_local_datasource.dart';
 import '../datasources/chat_remote_datasource.dart';
+import '../models/chat_message_qury_params.dart';
 import '../models/chat_query_params.dart';
 import '../models/message_model.dart';
 
@@ -64,9 +65,15 @@ class ChatRepositoryImpl implements ChatRepository {
   }
 
   @override
-  Future<Either<Failure, List<Message>>> getMessages(String chatRoomId) async {
+  Future<Either<Failure, PaginatedListResponse<Message>>> getMessages(
+    String chatRoomId,
+    ChatMessageQueryParams params,
+  ) async {
     try {
-      final remoteMessages = await _remoteDataSource.getMessages(chatRoomId);
+      final remoteMessages = await _remoteDataSource.getMessages(
+        chatRoomId,
+        params,
+      );
       // for (final message in remoteMessages) {
       //   await _localDataSource.insertMessage(message);
       // }
@@ -74,14 +81,17 @@ class ChatRepositoryImpl implements ChatRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } on NetworkException catch (e) {
-      try {
-        final localMessages = await _localDataSource.getMessages(chatRoomId);
-        return Right(localMessages);
-      } on CacheException catch (cacheError) {
-        return Left(NetworkFailure(e.message));
-      } catch (cacheError) {
-        return Left(NetworkFailure(e.message));
-      }
+      // try {
+      //   //final localMessages = await _localDataSource.getMessages(chatRoomId);
+      //   return Right();
+      // } on CacheException catch (cacheError) {
+      //   return Left(NetworkFailure(e.message));
+      // } catch (cacheError) {
+      //   return Left(NetworkFailure(e.message));
+      // }
+      return Left(
+        ServerFailure('Unexpected error occurred while getting messages'),
+      );
     } catch (e) {
       return Left(
         ServerFailure('Unexpected error occurred while getting messages'),

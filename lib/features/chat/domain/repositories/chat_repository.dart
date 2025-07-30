@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/model/paginated_list_response.dart';
+import '../../data/models/chat_message_qury_params.dart';
 import '../../data/models/chat_query_params.dart';
 import '../entities/message.dart';
 import '../entities/chat_room.dart';
@@ -10,7 +11,10 @@ abstract class ChatRepository {
   Future<Either<Failure, PaginatedListResponse<ChatRoom>>> getChatRooms(
     ChatQueryParams params,
   );
-  Future<Either<Failure, List<Message>>> getMessages(String chatRoomId);
+  Future<Either<Failure, PaginatedListResponse<Message>>> getMessages(
+    String chatRoomId,
+    ChatMessageQueryParams params,
+  );
   Future<Either<Failure, Message>> sendMessage(Message message);
   Future<Either<Failure, void>> deleteMessage(String messageId);
   Future<Either<Failure, void>> markAsRead(String chatRoomId, String messageId);

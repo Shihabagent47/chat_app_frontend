@@ -18,8 +18,12 @@ class ChatListPage extends StatelessWidget {
         child: GenericPaginatedList(
           bloc: context.read<ChatListBloc>(),
           itemBuilder:
-              (context, chatRoom, index) =>
-                  ChatRoomListItem(chatRoom: chatRoom, onTap: () {}),
+              (context, chatRoom, index) => ChatRoomListItem(
+                chatRoom: chatRoom,
+                onTap: () {
+                  NavigationHelper.goToChatRoom(context, chatRoom.id);
+                },
+              ),
         ),
       ),
     );

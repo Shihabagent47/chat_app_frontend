@@ -1,14 +1,9 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import '../model/paginated_list_response.dart';
 import '../model/pagination_meta.dart';
-
 import '../model/query_params.dart';
-
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:equatable/equatable.dart';
-import '../model/paginated_list_response.dart';
-import '../model/pagination_meta.dart';
 
 // Generic Events
 abstract class GenericListEvent extends Equatable {
@@ -85,10 +80,11 @@ class ListError<T> extends GenericListState<T> {
 }
 
 // Generic BLoC
+// Update your GenericListBloc - change the method from private to protected
 abstract class GenericListBloc<T>
     extends Bloc<GenericListEvent, GenericListState<T>> {
   GenericListBloc() : super(ListInitial<T>()) {
-    on<LoadList>(_onLoadList);
+    on<LoadList>(onLoadList); // Change this line
     on<LoadMore>(_onLoadMore);
     on<RefreshList>(_onRefreshList);
   }
@@ -99,39 +95,47 @@ abstract class GenericListBloc<T>
   // Method to create default query params - must be implemented by specific BLoCs
   QueryParams getDefaultQueryParams();
 
-  // Method to create next page query params - can be overridden by specific BLoCs
+  // Method to create next page query params - must be implemented by specific BLoCs
   QueryParams getNextPageQueryParams(QueryParams currentParams, int nextPage);
 
-  Future<void> _onLoadList(
+  @protected
+  Future<void> onLoadList(
     LoadList event,
     Emitter<GenericListState<T>> emit,
   ) async {
     final queryParams = event.queryParams ?? getDefaultQueryParams();
+    final isFirstPage = queryParams.page == 1;
+    final isRefresh = event.refresh;
 
-    if (event.refresh || state is ListInitial) {
+    // Determine current items to preserve during loading
+    List<T> currentItems = <T>[];
+    if (!isRefresh && !isFirstPage && state is ListLoaded<T>) {
+      currentItems = (state as ListLoaded<T>).items;
+    }
+
+    // Emit loading state
+    if (isRefresh || state is ListInitial<T> || isFirstPage) {
       emit(const ListLoading());
-    } else if (state is ListLoaded<T>) {
-      emit(
-        ListLoading(
-          currentItems: (state as ListLoaded<T>).items,
-          isLoadingMore: true,
-        ),
-      );
+    } else {
+      emit(ListLoading(currentItems: currentItems, isLoadingMore: true));
     }
 
     try {
       final response = await fetchData(queryParams);
 
       if (response.success) {
-        final currentItems =
-            event.refresh || queryParams.page == 1
-                ? <T>[]
-                : (state is ListLoaded<T>)
-                ? (state as ListLoaded<T>).items
-                : <T>[];
+        List<T> newItems;
 
-        final newItems = [...currentItems, ...response.data];
-        final hasReachedMax = !response.meta.hasNextPage;
+        // For refresh or first page, start fresh
+        if (isRefresh || isFirstPage) {
+          newItems = response.data;
+        } else {
+          // For subsequent pages, append to existing items
+          newItems = [...currentItems, ...response.data];
+        }
+
+        final hasReachedMax =
+            !response.meta.hasNextPage || response.data.isEmpty;
 
         emit(
           ListLoaded<T>(
@@ -146,19 +150,12 @@ abstract class GenericListBloc<T>
           ListError<T>(
             message: response.message,
             errors: response.errors,
-            currentItems:
-                state is ListLoaded<T> ? (state as ListLoaded<T>).items : [],
+            currentItems: currentItems,
           ),
         );
       }
     } catch (e) {
-      emit(
-        ListError<T>(
-          message: e.toString(),
-          currentItems:
-              state is ListLoaded<T> ? (state as ListLoaded<T>).items : [],
-        ),
-      );
+      emit(ListError<T>(message: e.toString(), currentItems: currentItems));
     }
   }
 
@@ -170,9 +167,10 @@ abstract class GenericListBloc<T>
       final currentState = state as ListLoaded<T>;
       if (!currentState.hasReachedMax &&
           currentState.currentQueryParams != null) {
+        final nextPage = currentState.meta.nextPage;
         final nextPageParams = getNextPageQueryParams(
           currentState.currentQueryParams!,
-          currentState.meta.nextPage,
+          nextPage,
         );
         add(LoadList(queryParams: nextPageParams));
       }
@@ -188,10 +186,13 @@ abstract class GenericListBloc<T>
             ? (state as ListLoaded<T>).currentQueryParams
             : null;
 
-    final refreshParams =
-        currentParams != null
-            ? getNextPageQueryParams(currentParams, 1)
-            : getDefaultQueryParams();
+    QueryParams refreshParams;
+    if (currentParams != null) {
+      // Create a copy of current params but reset to page 1
+      refreshParams = getNextPageQueryParams(currentParams, 1);
+    } else {
+      refreshParams = getDefaultQueryParams();
+    }
 
     add(LoadList(queryParams: refreshParams, refresh: true));
   }
