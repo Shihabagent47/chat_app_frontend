@@ -39,7 +39,7 @@ class AppTheme {
       foregroundColor: Colors.white,
       elevation: 0,
     ),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       color: lightColorScheme.surface,
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -62,7 +62,7 @@ class AppTheme {
       foregroundColor: Colors.white,
       elevation: 0,
     ),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       color: darkColorScheme.surface,
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
