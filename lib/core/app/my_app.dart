@@ -1,6 +1,8 @@
 import 'package:chat_app_user/config/app_config.dart';
 import 'package:chat_app_user/core/app/theme.dart';
+import 'package:chat_app_user/core/network/socket_io_client.dart';
 import 'package:chat_app_user/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:chat_app_user/features/auth/presentation/bloc/auth_state.dart';
 import 'package:chat_app_user/features/chat/presentation/bloc/chat_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -41,10 +43,8 @@ class MyApp extends StatelessWidget {
         builder: (context, themeState) {
           return MaterialApp.router(
             title: environment.appName,
-            debugShowCheckedModeBanner: environment.enableLogging,
             theme: _getTheme(themeState),
             darkTheme: _getTheme(themeState),
-
             routerConfig: AppRouter.router,
             builder: (context, child) {
               return _AppWrapper(child: child!);
@@ -71,7 +71,17 @@ class _AppWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget app = child;
+    Widget app = BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) {
+        final socket = di.sl<IoClient>();
+        if (state.status == AuthStatus.authenticated) {
+          socket.initialize();
+        } else if (state.status == AuthStatus.unauthenticated) {
+          socket.disconnect();
+        }
+      },
+      child: child,
+    );
 
     // Add environment banner for non-production
     if (!FlavorConfig.isProduction) {

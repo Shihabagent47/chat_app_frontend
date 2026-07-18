@@ -51,21 +51,3 @@ class MessagesLoaded extends ListLoaded<Message> implements ChatState {
 class ChatError extends ListError<Message> implements ChatState {
   const ChatError({required super.message, super.errors, super.currentItems});
 }
-
-class MessageSent extends ChatState {
-  final Message message;
-
-  const MessageSent(this.message);
-
-  @override
-  List<Object?> get props => [message];
-}
-
-class MessageDeleted extends ChatState {
-  final String messageId;
-
-  const MessageDeleted(this.messageId);
-
-  @override
-  List<Object?> get props => [messageId];
-}

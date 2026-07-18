@@ -176,6 +176,7 @@ Future<void> _initChat() async {
       getMessagesUseCase: sl(),
       deleteMessageUseCase: sl(),
       markAsReadUseCase: sl(),
+      chatRemoteDataSource: sl<ChatRemoteDataSource>(),
     ),
   );
 

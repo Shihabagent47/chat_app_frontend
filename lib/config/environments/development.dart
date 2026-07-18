@@ -9,7 +9,7 @@ class DevelopmentEnvironment extends AppEnvironment {
   String get baseUrl => 'http://localhost:3000';
 
   @override
-  String get socketUrl => 'http://192.168.0.243:3000';
+  String get socketUrl => 'http://localhost:3000';
 
   @override
   String get apiKey => 'dev_api_key_here';

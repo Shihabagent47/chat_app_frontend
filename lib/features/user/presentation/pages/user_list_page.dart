@@ -19,7 +19,9 @@ class UserListPage extends StatelessWidget {
         child: GenericPaginatedList(
           bloc: context.read<UserListBloc>(),
           itemBuilder:
-              (context, user, index) => UserListItem(user: user, onTap: () {}),
+              (context, user, index) => UserListItem(user: user, onTap: () {
+
+              }),
         ),
       ),
     );

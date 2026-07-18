@@ -21,19 +21,30 @@ class LoadMessages extends LoadList {
 
 class SendMessage extends ChatEvent {
   final String chatRoomId;
+  final String senderId;
   final String content;
   final String? mediaPath;
   final String? mediaType;
 
   const SendMessage({
     required this.chatRoomId,
+    required this.senderId,
     required this.content,
     this.mediaPath,
     this.mediaType,
   });
 
   @override
-  List<Object?> get props => [chatRoomId, content, mediaPath, mediaType];
+  List<Object?> get props => [chatRoomId, senderId, content, mediaPath, mediaType];
+}
+
+class RetryMessage extends ChatEvent {
+  final String tempId;
+
+  const RetryMessage(this.tempId);
+
+  @override
+  List<Object?> get props => [tempId];
 }
 
 class DeleteMessage extends ChatEvent {

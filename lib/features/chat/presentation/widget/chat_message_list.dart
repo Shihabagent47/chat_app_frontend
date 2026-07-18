@@ -144,10 +144,6 @@ class _ChatMessageListState extends State<ChatMessageList> {
           _isLoadingMore = false;
         }
 
-        // Handle new message sent - scroll to bottom
-        if (state is MessageSent) {
-          _shouldScrollToBottom = true;
-        }
       },
       child: BlocBuilder<ChatBloc, GenericListState<Message>>(
         bloc: widget.bloc,

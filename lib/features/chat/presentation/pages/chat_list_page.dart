@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/navigation/routing/navigation_helper.dart';
 import '../../../../shared/widgets/common/generic_paginated_list.dart';
-import '../../domain/entities/chat_room.dart';
 import '../bloc/chat_list_bloc.dart';
 import '../widget/chat_list_item.dart';
 

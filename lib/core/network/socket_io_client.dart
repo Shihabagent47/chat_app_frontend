@@ -6,78 +6,64 @@ import '../../config/flavor_config.dart';
 import '../../shared/services/storage/secure_storage_service.dart';
 
 class IoClient {
-  final IO.Socket _socket;
+  late final IO.Socket _socket;
+  final SecureStorageService _storage;
 
   IoClient({
     required SecureStorageService storage,
     required AppEnvironment environment,
-  }) : _socket = IO.io(
-         environment.socketUrl,
-         IO.OptionBuilder()
-             .setTransports(['websocket'])
-             .enableAutoConnect()
-             .enableReconnection()
-             .setReconnectionAttempts(5)
-             .setReconnectionDelay(2000)
-             .setTimeout(10000)
-             .setExtraHeaders({})
-             .build(),
-       ) {
-    _setupSocketListeners(storage);
+  }) : _storage = storage {
+    _socket = IO.io(
+      '${environment.socketUrl}/chat',
+      IO.OptionBuilder()
+          .setTransports(['websocket'])
+          .disableAutoConnect()
+          .enableReconnection()
+          .setReconnectionAttempts(5)
+          .setReconnectionDelay(2000)
+          .setTimeout(10000)
+          .build(),
+    );
+    _setupSocketListeners();
   }
 
-  void _setupSocketListeners(SecureStorageService storage) {
-    _socket.onConnect((_) {
-      logSocketEvent('connect');
-      _authenticateSocket(storage);
-    });
-
-    _socket.onDisconnect((_) {
-      logSocketEvent('disconnect');
-    });
-
-    _socket.onConnectError((error) {
-      logSocketError(error.toString());
-    });
-
-    _socket.onError((error) {
-      logSocketError(error.toString());
-    });
-
-    _socket.onReconnect((_) {
+  void _setupSocketListeners() {
+    _socket.onConnect((_) => logSocketEvent('connect'));
+    _socket.onDisconnect((_) => logSocketEvent('disconnect'));
+    _socket.onConnectError((error) => logSocketError(error.toString()));
+    _socket.onError((error) => logSocketError(error.toString()));
+    _socket.onReconnect((_) async {
       logSocketEvent('reconnect');
-      _authenticateSocket(storage);
+      await _applyAuth();
     });
   }
 
-  Future<void> _authenticateSocket(SecureStorageService storage) async {
-    try {
-      final token = await storage.getAccessToken();
-      if (token != null) {
-        _socket.emit('authenticate', {'token': token});
-      }
-    } catch (e) {
-      logSocketError('Failed to authenticate socket: $e');
+  Future<void> _applyAuth() async {
+    final token = await _storage.getAccessToken();
+    if (token != null) {
+      _socket.auth = {'token': 'Bearer $token'};
     }
+  }
+
+  /// Call once after login (or on app start if already authenticated).
+  Future<void> initialize() async {
+    await _applyAuth();
+    _socket.connect();
   }
 
   IO.Socket get socket => _socket;
 
-  void connect() {
+  Future<void> connect() async {
     if (!_socket.connected) {
-      _socket.connect();
+      await initialize();
     }
   }
 
   void disconnect() {
-    if (_socket.connected) {
-      _socket.disconnect();
-    }
+    if (_socket.connected) _socket.disconnect();
   }
 
-  void dispose() {
-    _socket.dispose();
-  }
+  void dispose() => _socket.dispose();
 
   static void logSocketEvent(
     String event, {

@@ -1,11 +1,6 @@
 import 'dart:async';
-import 'dart:convert';
-import 'package:chat_app_user/core/network/dio_client.dart';
 import 'package:chat_app_user/core/network/socket_io_client.dart';
 import 'package:dio/dio.dart';
-import 'package:http/http.dart' as http;
-import 'package:socket_io_client/socket_io_client.dart' as IO;
-import '../../../../config/app_config.dart';
 import '../../../../core/model/paginated_list_response.dart';
 import '../../../../core/repositories/base_repository.dart';
 import '../models/chat_message_qury_params.dart';
@@ -121,9 +116,24 @@ class ChatRemoteDataSourceImpl extends BaseRepository
   Stream<MessageModel> watchMessages(String chatRoomId) {
     final controller = StreamController<MessageModel>.broadcast();
 
-    ioClient.socket.on('message_$chatRoomId', (data) {
-      controller.add(MessageModel.fromJson(data));
-    });
+    ioClient.socket.emit('join_conversation', {'conversationId': chatRoomId});
+
+    void onNewMessage(dynamic data) {
+      if (!controller.isClosed) controller.add(MessageModel.fromJson(data));
+    }
+
+    void onMessageUpdated(dynamic data) {
+      if (!controller.isClosed) controller.add(MessageModel.fromJson(data));
+    }
+
+    ioClient.socket.on('new_message', onNewMessage);
+    ioClient.socket.on('message_updated', onMessageUpdated);
+
+    controller.onCancel = () {
+      ioClient.socket.off('new_message', onNewMessage);
+      ioClient.socket.off('message_updated', onMessageUpdated);
+      ioClient.socket.emit('leave_conversation', {'conversationId': chatRoomId});
+    };
 
     return controller.stream;
   }
@@ -131,19 +141,38 @@ class ChatRemoteDataSourceImpl extends BaseRepository
   @override
   Stream<List<String>> watchTypingUsers(String chatRoomId) {
     final controller = StreamController<List<String>>.broadcast();
+    final typingUsers = <String>{};
 
-    ioClient.socket.on('typing_$chatRoomId', (data) {
-      controller.add(List<String>.from(data));
-    });
+    void onTyping(dynamic data) {
+      final userId = data['userId'] as String?;
+      if (userId == null || controller.isClosed) return;
+      typingUsers.add(userId);
+      controller.add(typingUsers.toList());
+    }
+
+    void onStopTyping(dynamic data) {
+      final userId = data['userId'] as String?;
+      if (userId == null || controller.isClosed) return;
+      typingUsers.remove(userId);
+      controller.add(typingUsers.toList());
+    }
+
+    ioClient.socket.on('user_typing', onTyping);
+    ioClient.socket.on('user_stop_typing', onStopTyping);
+
+    controller.onCancel = () {
+      ioClient.socket.off('user_typing', onTyping);
+      ioClient.socket.off('user_stop_typing', onStopTyping);
+    };
 
     return controller.stream;
   }
 
   @override
   Future<void> updateTypingStatus(String chatRoomId, bool isTyping) async {
-    ioClient.socket.emit('typing_status', {
-      'chatRoomId': chatRoomId,
-      'isTyping': isTyping,
-    });
+    ioClient.socket.emit(
+      isTyping ? 'typing' : 'stop_typing',
+      {'conversationId': chatRoomId},
+    );
   }
 }

@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../bloc/chat_bloc.dart';
-import '../bloc/chat_state.dart';
 import '../bloc/chat_event.dart';
 import '../bloc/message_input_cubit.dart';
 import '../bloc/typing_indicator_cubit.dart';
 import '../widget/chat_message_list.dart';
 import '../widget/message_bubble.dart';
 import '../widget/message_input.dart';
-import '../widget/typing_indicator.dart';
 
 class ChatRoomPage extends StatefulWidget {
   final String chatRoomId;
@@ -27,7 +26,6 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
   void initState() {
     super.initState();
     _chatBloc = context.read<ChatBloc>();
-    // Load initial messages
     _chatBloc.add(LoadMessages(widget.chatRoomId));
   }
 
@@ -49,6 +47,9 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
 
   @override
   Widget build(BuildContext context) {
+    final currentUserId =
+        (context.read<AuthBloc>().state.user?.id) ?? '';
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Chat'),
@@ -58,9 +59,7 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.more_vert),
-            onPressed: () {
-              // Show chat options
-            },
+            onPressed: () {},
           ),
         ],
       ),
@@ -71,7 +70,6 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
         ],
         child: Column(
           children: [
-            // Option 1: Using the chat-specific widget
             Expanded(
               child: ChatMessageList(
                 bloc: _chatBloc,
@@ -79,9 +77,7 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
                 messageBuilder: (context, message, index) {
                   return MessageBubble(
                     message: message,
-                    isMe:
-                        message.senderId ==
-                        getCurrentUserId(), // Implement this
+                    isMe: message.senderId == currentUserId,
                   );
                 },
                 emptyWidget: const Center(
@@ -93,17 +89,16 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
                 ),
               ),
             ),
-
-            // Message input
             MessageInput(
               onSendMessage: (content) {
                 _chatBloc.add(
-                  SendMessage(chatRoomId: widget.chatRoomId, content: content),
+                  SendMessage(
+                    chatRoomId: widget.chatRoomId,
+                    senderId: currentUserId,
+                    content: content,
+                  ),
                 );
-                // Scroll to bottom after sending message
-                Future.delayed(const Duration(milliseconds: 100), () {
-                  _scrollToBottom();
-                });
+                Future.delayed(const Duration(milliseconds: 100), _scrollToBottom);
               },
             ),
           ],
@@ -111,10 +106,4 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
       ),
     );
   }
-}
-
-// Helper function - implement based on your auth system
-String getCurrentUserId() {
-  // TODO: Implement this
-  return 'current_user_id';
 }
